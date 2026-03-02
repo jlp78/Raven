@@ -662,6 +662,8 @@ function resetPost()
     t.value = "";
     p.style.display = null;
     const w = I("winmenu");
+    const i = I("imagemenu");
+    const cstate = getChannel(rightSelection)?.state ?? {};
     if (me.is_unmessagable || rightSelection === "channel-config" || rightSelection.indexOf("winlink-express-") === 0) {
         p.style.display = "none";
     }
@@ -670,11 +672,13 @@ function resetPost()
         if (nodes[rightSelection.split(" ")[1]]?.is_unmessagable) {
             p.style.display = "none";
         }
-        w.style.display = winlink && getChannel(rightSelection)?.state?.winlink ? null : "none";
+        w.style.display = winlink && cstate.winlink ? null : "none";
+        i.style.display = cstate.imates ? null : "none";
     }
     else {
         t.placeholder = "Message ...";
-        w.style.display = winlink && getChannel(rightSelection)?.state?.winlink ? null : "none";
+        w.style.display = winlink && cstate.winlink ? null : "none";
+        i.style.display = cstate.images ? null : "none";
     }
 }
 
