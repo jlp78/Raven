@@ -117,11 +117,10 @@ export function syncMessageNamekey(namekey)
                 cursor: state.cursor,
                 limit: state.max
             }));
-            synced[namekey] = true;
         }
     }
     else {
-        synced[namekey] = false;
+        delete synced[namekey];
     }
 };
 
@@ -201,13 +200,11 @@ export function process(msg)
             }
         }
         else if (msg.data.textstore_message) {
-            timers.cancel("textstoresync");
-            if (msg.data.textstore_message) {
-                textmessage.addMessage(msg.data.textstore_message);
-                if (enabled) {
-                    addMessage(msg.data.textstore_message);
-                }
+            textmessage.addMessage(msg.data.textstore_message);
+            if (enabled) {
+                addMessage(msg.data.textstore_message);
             }
+            synced[msg.namekey] = true;
         }
     }
     if (msg.data?.text_message && node.forMe(msg) && channel.getLocalChannelByNameKey(msg.namekey)) {
