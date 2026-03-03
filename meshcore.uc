@@ -294,8 +294,8 @@ function decodePacket(pkt)
         }
     }
 
-    msg.pkthash = crypto.sha256hash(chr(type) + (type === PAYLOAD_TYPE_TRACE ? msg.path : "") + substr(pkt, offset));
-    msg.id = (msg.pkthash[0] << 24) | (msg.pkthash[1] << 16) + (msg.pkthash[2] << 8) + msg.pkthash[3];
+    const pkthash = crypto.sha256hash(chr(type) + (type === PAYLOAD_TYPE_TRACE ? struct.pack(">H", pathlen) : "") + substr(pkt, offset));
+    msg.id = (pkthash[0] << 24) | (pkthash[1] << 16) + (pkthash[2] << 8) + pkthash[3];
 
     switch (type) {
         case PAYLOAD_TYPE_PATH:
