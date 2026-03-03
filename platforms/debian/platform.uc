@@ -76,9 +76,9 @@ function path(name)
     return null;
 }
 
-/* export */ function getStoresByNamekey()
+/* export */ function getStoreByNamekey()
 {
-    return [];
+    return null;
 }
 
 /* export */ function publish()
@@ -131,7 +131,7 @@ return {
     fetch,
     getTargetsByIdAndNamekey,
     getTargetById,
-    getStoresByNamekey,
+    getStoreByNamekey,
     publish,
     badge,
     auth,

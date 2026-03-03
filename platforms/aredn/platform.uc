@@ -3,16 +3,17 @@ import * as socket from "socket";
 import * as timers from "../../timers.uc";
 import * as uci from "uci";
 import * as services from "aredn.services";
+import * as babel from "aredn.babel";
 import * as node from "../../node.uc";
 import * as channel from "../../channel.uc";
-import * as crypto from "../../crypto/crypto.uc";
 
 const CURL = "/usr/bin/curl";
 
 const pubID = "KN6PLV.raven.v1.1";
 const pubTopic = "KN6PLV.raven.v1";
 
-const RESCAN_INTERVAL = 1 * 60;
+const RESCAN_INTERVAL = 1 * 60; // 1 minute
+const STORE_SORT_TIMEOUT = 10 * 60; // 10 minutes
 
 const MAX_BINARY_MEM = 0.1; // 10% free ram for binary storage
 
@@ -33,6 +34,7 @@ const badges = {};
 let watcher = null;
 let maxBinarySize = 1 * 1024 * 1024;
 let inShutdown = false;
+let storeSort = 0;
 
 /* export */ function setup(config)
 {
@@ -319,9 +321,38 @@ function path(name)
     return byid[id];
 }
 
-/* export */ function getStoresByNamekey(namekey)
+/*
+ * Order stores so the closest ones are first.
+ */
+function orderStores()
 {
-    return stores[namekey] ?? stores["*"] ?? [];
+    const allstores = {};
+    for (let k in stores) {
+        const s = stores[k];
+        for (let i = 0; i < length(s); i++) {
+            allstores[s[i].ip] = { store: s[i], metric: 9999999 };
+        }
+    }
+    const routes = babel.getHostRoutes();
+    for (let i = 0; i < length(routes); i++) {
+        const r = routes[i];
+        const s = allstores[r.ip];
+        if (s) {
+            s.metric = r.metric;
+        }
+    }
+    for (let k in stores) {
+        sort(stores[k], (a, b) => allstores[a.ip].metric - allstores[b.ip].metrics);
+    }
+    storeSort = time() + STORE_SORT_TIMEOUT;
+}
+
+/* export */ function getStoreByNamekey(namekey)
+{
+    if (time() > storeSort) {
+        orderStores();
+    }
+    const s = (stores[namekey] ?? stores["*"] ?? [])[0];
 }
 
 /* export */ function publish(me, channels)
@@ -441,6 +472,7 @@ function refreshTargets()
             }
         }
     }
+    orderStores();
     if (sprintf("%J", stores) !== ostores) {
         timers.trigger("textstoreresync");
     }
@@ -501,7 +533,7 @@ return {
     fetch,
     getTargetsByIdAndNamekey,
     getTargetById,
-    getStoresByNamekey,
+    getStoreByNamekey,
     publish,
     badge,
     auth,

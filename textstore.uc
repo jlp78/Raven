@@ -1,3 +1,4 @@
+import * as math from "math";
 import * as channel from "channel";
 import * as router from "router";
 import * as message from "message";
@@ -107,12 +108,11 @@ function resendMessages(msg)
 
 export function syncMessageNamekey(namekey)
 {
-    const stores = platform.getStoresByNamekey(namekey);
-    if (stores[0]) {
-        const to = stores[0].id;
-        if (synced[namekey] !== to) {
+    const store = platform.getStoreByNamekey(namekey);
+    if (store) {
+        if (synced[namekey] !== store.id) {
             const state = textmessage.state(namekey);
-            router.queue(message.createMessage(to, null, namekey, "textstore_resend", {
+            router.queue(message.createMessage(store.id, null, namekey, "textstore_resend", {
                 namekey: namekey,
                 cursor: state.cursor,
                 limit: state.max
@@ -124,10 +124,13 @@ export function syncMessageNamekey(namekey)
     }
 };
 
-function syncMessages()
+function syncMessages(reset)
 {
     const all = channel.getAllLocalChannels();
     for (let i = 0; i < length(all); i++) {
+        if (reset) {
+            delete synced[all[i].namekey];
+        }
         syncMessageNamekey(all[i].namekey);
     }
 }
@@ -135,9 +138,9 @@ function syncMessages()
 function checkMissing(msg)
 {
     if (msg.data.last_id && !textmessage.getMessage(msg.namekey, msg.data.last_id)) {
-        const stores = platform.getStoresByNamekey(msg.namekey);
-        if (stores[0]) {
-            router.queue(message.createMessage(store[0].id, null, msg.namekey, "textstore_resend", {
+        const store = platform.getStoreByNamekey(msg.namekey);
+        if (store) {
+            router.queue(message.createMessage(store.id, null, msg.namekey, "textstore_resend", {
                 namekey: msg.namekey,
                 cursor: msg.data.last_id,
                 limit: 1
@@ -176,14 +179,14 @@ export function tick()
         saveToPlatform();
     }
     if (timers.tick("textstoresync")) {
-        syncMessages();
+        syncMessages(false);
         syncCount--;
         if (syncCount <= 0) {
             timers.cancel("textstoresync");
         }
     }
     if (timers.tick("textstoreresync")) {
-        syncMessages();
+        syncMessages(true);
     }
 };
 
