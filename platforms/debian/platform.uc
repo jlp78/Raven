@@ -102,10 +102,6 @@ function path(name)
 {
 }
 
-/* export */ function refresh()
-{
-}
-
 /* export */ function handle()
 {
     return null;
@@ -137,7 +133,6 @@ return {
     auth,
     tick,
     process,
-    refresh,
     handle,
     handleChanges,
     getMap

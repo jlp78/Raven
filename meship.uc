@@ -3,11 +3,15 @@ import * as socket from "socket";
 const PORT = 4404;
 
 let s = null;
+let bridge = false;
 
 export function setup(config)
 {
     if (!config.meship) {
         return;
+    }
+    if (config.meship.bridge) {
+        bridge = true;
     }
     s = socket.create(socket.AF_INET, socket.SOCK_DGRAM, 0);
     s.bind({
@@ -28,13 +32,7 @@ export function handle()
 export function recv()
 {
     try {
-        const msg = json(s.recvmsg(65535).data);
-        // If we receive a message from an unknown target, refresh the platform targets in an
-        // attempt to learn about it.
-        if (!platform.getTargetById(msg.from)) {
-            platform.refresh();
-        }
-        return msg;
+        return json(s.recvmsg(65535).data);
     }
     catch (_) {
         return null;
@@ -43,6 +41,12 @@ export function recv()
 
 export function send(to, msg, canforward)
 {
+    // MeshIP bridge traffic should never be forwarded by a receiver
+    // and is only ever for the direct recipient.
+    if (bridge) {
+        msg.hop_limit = 0;
+        canforward = false;
+    }
     const targets = platform.getTargetsByIdAndNamekey(to, msg.namekey, canforward);
     const data = sprintf("%J", msg);
     for (let i = 0; i < length(targets); i++) {

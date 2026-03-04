@@ -27,9 +27,9 @@ let myid;
 let arednmeshEnabled = false;
 let meshtasticEnabled = false;
 let meshcoreEnabled = false;
+let meshipBridgeEnabled = false;
 let storesEnabled = null;
-let meshtasticForwarders = [];
-let meshcoreForwarders = [];
+let bridges = [];
 const badges = {};
 let watcher = null;
 let maxBinarySize = 1 * 1024 * 1024;
@@ -57,6 +57,7 @@ let storeSort = 0;
     ucdata.height = c.get("aredn", "@location[0]", "height");
     ucdata.hostname = c.get("system", "@system[0]", "hostname");
     ucdata.mapUrl = c.get("aredn", "@location[0]", "map");
+    ucdata.isSupernode = c.get("aredn", "@supernode[0]", "enable") == "1";
 
     const cm = uci.cursor("/etc/config.mesh");
     ucdata.main_ip = cm.get("setup", "globals", "wifi_ip");
@@ -78,12 +79,22 @@ let storeSort = 0;
         }
     }
 
+    // Supernodes *only* forward meship traffic. We disable every other kind of bridge
+    // just in case they were enabled.
+    if (ucdata.isSupernode && config.meship) {
+        delete config.meshtastic;
+        delete config.meshcore;
+        meshipBridgeEnabled = true;
+        config.meship.bridge = true;
+    }
+
     if (config.meshtastic) {
         meshtasticEnabled = true;
     }
     if (config.meshcore) {
         meshcoreEnabled = true;
     }
+
 
     const freemem = 1024 * match(fs.readfile("/proc/meminfo"), /MemFree: +(\d+) kB/)[1];
     const binarymem = freemem * MAX_BINARY_MEM;
@@ -305,13 +316,8 @@ function path(name)
             return [ target ];
         }
     }
-    if (canforward) {
-        if (!meshtasticEnabled) {
-            targets = [ ...targets, ...meshtasticForwarders ];
-        }
-        if (!meshcoreEnabled) {
-            targets = [ ...targets, ...meshcoreForwarders ];
-        }
+    if (canforward && length(bridges) > 0) {
+        targets = [ ...targets, ...bridges ];
     }
     return uniq(targets);
 }
@@ -370,13 +376,16 @@ function orderStores()
     if (storesEnabled) {
         info.store = storesEnabled;
     }
-    if (meshtasticEnabled || meshcoreEnabled) {
+    if (meshtasticEnabled || meshcoreEnabled || meshipBridgeEnabled) {
         info.bridge = [];
         if (meshtasticEnabled) {
             push(info.bridge, { meshtastic: {} });
         }
         if (meshcoreEnabled) {
             push(info.bridge, { meshcore: {} });
+        }
+        if (meshipBridgeEnabled) {
+            push(info.bridge, { meship: {} });
         }
     }
     services.publish(pubID, pubTopic, info);
@@ -431,8 +440,9 @@ function refreshTargets()
     const published = services.published(pubTopic);
     byid = {};
     bynamekey = {};
-    meshtasticForwarders = [];
-    meshcoreForwarders = [];
+    const meshtasticForwarders = [];
+    const meshcoreForwarders = [];
+    const meshipForwarders = [];
     const ostores = sprintf("%J", stores);
     stores = {};
     for (let i = 0; i < length(published); i++) {
@@ -450,14 +460,17 @@ function refreshTargets()
                 nchannels[namekey] = true;
             }
             service.channels = nchannels;
-            if (service.bridge) {
+            if (service.bridge && !meshipBridgeEnabled) {
                 for (let j = 0; j < length(service.bridge); j++) {
                     const b = service.bridge[j];
-                    if (b.meshtastic) {
+                    if (!meshtasticEnabled && b.meshtastic) {
                         push(meshtasticForwarders, service);
                     }
-                    if (b.meshcore) {
+                    if (!meshcoreEnabled && b.meshcore) {
                         push(meshcoreForwarders, service);
+                    }
+                    if (b.meship) {
+                        push(meshipForwarders, service);
                     }
                 }
             }
@@ -472,6 +485,7 @@ function refreshTargets()
             }
         }
     }
+    bridges = uniq([ ...meshtasticForwarders, ...meshcoreForwarders, ...meshipForwarders ]);
     orderStores();
     if (sprintf("%J", stores) !== ostores) {
         timers.trigger("textstoreresync");
@@ -487,11 +501,6 @@ function refreshTargets()
 
 /* export */ function process(msg)
 {
-}
-
-/* export */ function refresh()
-{
-    refreshTargets();
 }
 
 /* export */ function handle()
@@ -539,7 +548,6 @@ return {
     auth,
     tick,
     process,
-    refresh,
     handle,
     handleChanges,
     getMap
