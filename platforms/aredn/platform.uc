@@ -66,7 +66,7 @@ let storeSort = 0;
     ucdata.macaddress = map(split(cu.get("hsmmmesh", "settings", "wifimac"), ":"), v => hex(v));
 
     if (config.arednmesh) {
-        config.ipmesh = config.arednmesh;
+        config.meship = config.arednmesh;
         arednmeshEnabled = true;
         if (config.textstore) {
             if (config.textstore.stores) {
@@ -134,7 +134,7 @@ let storeSort = 0;
         config.meshtastic.address = ucdata.lan_ip;
     }
 
-    if (config.role === "client_mute" && config.meshtastic && config.ipmesh) {
+    if (config.role === "client_mute" && (config.meshtastic || config.meshcore) && config.meship) {
         config.role = "client";
     }
 

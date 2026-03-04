@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as router from "router";
 import * as channel from "channel";
 import * as node from "node";
-import * as ipmesh from "ipmesh";
+import * as meship from "meship";
 import * as meshtastic from "meshtastic";
 import * as meshtasticprotobufs from "meshtasticprotobufs";
 import * as meshcore from "meshcore";
@@ -152,8 +152,8 @@ export function setup()
 
     node.setup(config);
 
-    ipmesh.setup(config);
-    router.registerApp(ipmesh);
+    meship.setup(config);
+    router.registerApp(meship);
     meshtastic.setup(config);
     router.registerApp(meshtastic);
     meshcore.setup(config);
@@ -201,7 +201,7 @@ export function setup()
         DEBUG0("Shutting down\n");
         meshtastic.shutdown();
         meshcore.shutdown();
-        ipmesh.shutdown();
+        meship.shutdown();
         platform.shutdown();
         nodedb.shutdown();
         textmessage.shutdown();

@@ -6,7 +6,7 @@ let s = null;
 
 export function setup(config)
 {
-    if (!config.ipmesh) {
+    if (!config.meship) {
         return;
     }
     s = socket.create(socket.AF_INET, socket.SOCK_DGRAM, 0);
@@ -51,7 +51,7 @@ export function send(to, msg, canforward)
             port: PORT
         });
         if (r === null) {
-            DEBUG0("ipmesh:send error: %s\n", socket.error());
+            DEBUG0("meship:send error: %s\n", socket.error());
         }
     }
 };

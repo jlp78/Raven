@@ -4,7 +4,7 @@
     "meshtastic": {
         "address": "192.168.1.100"
     },
-    "ipmesh": {},
+    "meship": {},
     "location": {
         "latitude": 37.000,
         "longitude": -122.000,

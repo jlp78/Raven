@@ -1,6 +1,6 @@
 import * as meshtastic from "meshtastic";
 import * as meshcore from "meshcore";
-import * as ipmesh from "ipmesh";
+import * as meship from "meship";
 import * as node from "node";
 import * as nodedb from "nodedb";
 import * as socket from "socket";
@@ -78,12 +78,12 @@ export function process()
 
             if (toip) {
                 try {
-                    DEBUG1("Send IPMesh: %.2J\n", msg);
+                    DEBUG1("Send MeshIP: %.2J\n", msg);
                     // Include forwarding nodes when sending the message if the hop_limit allows it
-                    ipmesh.send(msg.to, msg, msg.hop_limit > 0);
+                    meship.send(msg.to, msg, msg.hop_limit > 0);
                 }
                 catch (e) {
-                    DEBUG0("ipmesh recv: %s\n", e.stacktrace);
+                    DEBUG0("meship recv: %s\n", e.stacktrace);
                 }
             }
             if (tomeshcore) {
@@ -92,7 +92,7 @@ export function process()
                     meshcore.send(msg);
                 }
                 catch (e) {
-                    DEBUG0("ipmesh recv: %s\n", e.stacktrace);
+                    DEBUG0("meshcore recv: %s\n", e.stacktrace);
                 }
             }
             // Meshtastic modifies the message so much come last
@@ -102,7 +102,7 @@ export function process()
                     meshtastic.send(msg);
                 }
                 catch (e) {
-                    DEBUG0("ipmesh recv: %s\n", e.stacktrace);
+                    DEBUG0("meshtastic recv: %s\n", e.stacktrace);
                 }
             }
         }
@@ -130,9 +130,9 @@ export function tick()
     }
     process();
     const sockets = [];
-    const us = ipmesh.handle();
+    const us = meship.handle();
     if (us) {
-        push(sockets, [ us, socket.POLLIN, "ipmesh" ]);
+        push(sockets, [ us, socket.POLLIN, "meship" ]);
     }
     const ms = meshtastic.handle();
     if (ms) {
@@ -172,12 +172,12 @@ export function tick()
                     }
                     break;
                 }
-                case "ipmesh":
+                case "meship":
                     try {
-                        queue(ipmesh.recv());
+                        queue(meship.recv());
                     }
                     catch (e) {
-                        DEBUG0("ipmesh recv: %s\n%s\n", e, e.stacktrace);
+                        DEBUG0("meship recv: %s\n%s\n", e, e.stacktrace);
                     }
                     break;
                 case "meshtastic":
