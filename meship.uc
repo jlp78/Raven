@@ -29,6 +29,11 @@ export function handle()
     return s;
 };
 
+export function isBridge()
+{
+    return bridge;
+};
+
 export function recv()
 {
     try {
@@ -49,13 +54,17 @@ export function send(to, msg, canforward)
     }
     const targets = platform.getTargetsByIdAndNamekey(to, msg.namekey, canforward);
     const data = sprintf("%J", msg);
-    for (let i = 0; i < length(targets); i++) {
-        const r = s.send(data, 0, {
-            address: targets[i].ip,
-            port: PORT
-        });
-        if (r === null) {
-            DEBUG0("meship:send error: %s\n", socket.error());
+    const from = msg.from;
+    for (let i = length(targets) - 1; i >= 0; i--) {
+        const t = targets[i];
+        if (t.id !== from) {
+            const r = s.send(data, 0, {
+                address: t.ip,
+                port: PORT
+            });
+            if (r === null) {
+                DEBUG0("meship:send error: %s\n", socket.error());
+            }
         }
     }
 };

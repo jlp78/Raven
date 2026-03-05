@@ -60,7 +60,7 @@ export function process()
             // target network we can avoiding retransmitting it unnecessarily.
             else if (msg.transport === "native") {
                 const tonodeinfo = node.isBroadcast(msg) ? null : nodedb.getNode(msg.to, false)?.nodeinfo;
-                if (node.fromMe(msg)) {
+                if (node.fromMe(msg) || tonodeinfo.platform === "native" || meship.isBridge()) {
                     toip = true;
                 }
                 if (!tonodeinfo || tonodeinfo.platform === "meshtastic") {
