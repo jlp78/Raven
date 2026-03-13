@@ -75,7 +75,8 @@ mv $ROOT/raven_${VERSION}_all.ipk .
 rm -f ./raven-*.apk
 cp $SRC/platforms/aredn/postinst $ROOT/data/.post-install
 cp $SRC/platforms/aredn/prerm $ROOT/data/.pre-deinstall
-chmod 755 $ROOT/data/.post-install $ROOT/data/.pre-deinstall
+cp $SRC/platforms/aredn/postupgrade $ROOT/data/.post-upgrade
+chmod 755 $ROOT/data/.post-install $ROOT/data/.pre-deinstall $ROOT/data/.post-upgrade
 mkapk.py \
     -n raven \
     -v ${VER} \
