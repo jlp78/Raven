@@ -18,7 +18,8 @@ function saveDB()
 {
     const window = time() - KEEP_WINDOW;
     for (let id in nodedb) {
-        if (nodedb[id].lastseen < window) {
+        const n = nodedb[id];
+        if (n.lastseen < window && !n.favorite) {
             delete nodedb[id];
         }
     }
