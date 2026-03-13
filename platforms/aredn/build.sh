@@ -73,7 +73,7 @@ mv $ROOT/raven_${VERSION}_all.ipk .
 # Make APK
 #
 rm -f ./raven-*.apk
-cp $SRC/platforms/aredn/postinst $ROOT/data/.post-install
+cp $SRC/platforms/aredn/postinstall $ROOT/data/.post-install
 cp $SRC/platforms/aredn/prerm $ROOT/data/.pre-deinstall
 cp $SRC/platforms/aredn/postupgrade $ROOT/data/.post-upgrade
 chmod 755 $ROOT/data/.post-install $ROOT/data/.pre-deinstall $ROOT/data/.post-upgrade
