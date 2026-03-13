@@ -9,6 +9,8 @@ import * as textstore from "textstore";
 import * as router from "router";
 import * as winlink from "winlink";
 
+const MAXNODES = 200;
+
 const q = [];
 let merge = {};
 let update = null;
@@ -146,7 +148,7 @@ export function tick()
                     const raw = nodedb.getNodes(false);
                     sort(raw, (a, b) => b.lastseen - a.lastseen);
                     const nodes = [];
-                    for (let i = 0; i < length(raw) && length(nodes) < 200; i++) {
+                    for (let i = 0; i < length(raw) && length(nodes) < MAXNODES; i++) {
                         const node = basicNode(raw[i]);
                         if (node) {
                             push(nodes, node);
@@ -160,7 +162,7 @@ export function tick()
                     const raw = nodedb.getNodes(true);
                     sort(raw, (a, b) => a.nodeinfo?.long_name < b.nodeinfo?.long_name ? -1 : a.nodeinfo?.long_name > b.nodeinfo?.long_name ? 1 : 0);
                     const nodes = [];
-                    for (let i = 0; i < length(raw) && length(nodes) < 200; i++) {
+                    for (let i = 0; i < length(raw) && length(nodes) < MAXNODES; i++) {
                         const node = basicNode(raw[i]);
                         if (node) {
                             push(nodes, node);
