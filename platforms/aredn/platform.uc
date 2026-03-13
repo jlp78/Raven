@@ -360,7 +360,7 @@ function orderStores()
     if (time() > storeSort) {
         orderStores();
     }
-    const s = (stores[namekey] ?? stores["*"] ?? [])[0];
+    return (stores[namekey] ?? stores["*"] ?? [])[0];
 }
 
 /* export */ function publish(me, channels)
