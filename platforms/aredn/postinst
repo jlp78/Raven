@@ -9,7 +9,7 @@ color_override='#apps .app-user > div { color: #f0f0f0; }'
 result=$(grep "${color_override}" ${user_css})
 if [ "${result}" == "" ]; then
     echo "${color_override}" >> ${user_css}
-    /etc/init.d/uhttpd restart
+    sh -c 'sleep 5; /etc/init.d/uhttpd restart' &
 fi
 
 exit 0
