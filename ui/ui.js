@@ -160,7 +160,7 @@ function htmlNode(node)
     if (activeFilter && filter.indexOf(activeFilter) === -1) {
         filtered = true;
     }
-    return `<div id="${node.id}" class="node ${node.platform} ${rightSelection === namekey ? 'selected' : ''}" ${filtered ? 'style="display:none"' : ''} data-namekey="${namekey}" data-filter="${filter}" onclick="showNamekey('${namekey}')">
+    return `<div id="${node.num}" class="node ${node.platform} ${rightSelection === namekey ? 'selected' : ''}" ${filtered ? 'style="display:none"' : ''} data-namekey="${namekey}" data-filter="${filter}" onclick="showNamekey('${namekey}')">
         <div class="s" style="color:${node.colors.fcolor};background-color:${node.colors.bcolor}">${node.short_name}</div>
         ${node.platform ? '<div class="logo"></div>' : ''}
         <div class="m">
@@ -393,7 +393,7 @@ function updateNode(msg)
     const nd = N(htmlNode(node));
     const nl = msg.node.favorite ? I("favorites") : I("nodes");
     if (document.visibilityState == "hidden") {
-        const n = I(msg.node.id);
+        const n = I(msg.node.num);
         if (n) {
             nl.removeChild(n);
         }
@@ -402,7 +402,7 @@ function updateNode(msg)
     else {
         const s = I("nodes-scroll");
         const c = s.getBoundingClientRect();
-        let n = I(msg.node.id);
+        let n = I(msg.node.num);
         if (n) {
             const r = n.getBoundingClientRect();
             if (r.bottom >= c.top && r.top < c.bottom) {
@@ -416,7 +416,7 @@ function updateNode(msg)
         if (!n) {
             nl.insertBefore(nd, nl.firstElementChild);
             const r = nd.getBoundingClientRect();
-            if (r.bottom >= c.top && r.top < c.bottom) {
+            if (r.bottom >= c.top) {
                 nd.classList.add("fade");
             }
             else {
@@ -586,7 +586,7 @@ function toggleFav(event, nodenum)
     const node = nodes[nodenum];
     if (node) {
         node.favorite = !node.favorite;
-        const nd = I(node.id);
+        const nd = I(node.num);
         nd.remove();
         if (node.favorite) {
             event.target.classList.add("true");
