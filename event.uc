@@ -9,7 +9,7 @@ import * as textstore from "textstore";
 import * as router from "router";
 import * as winlink from "winlink";
 
-const MAXNODES = 200;
+const MAXNODES = 300;
 
 const q = [];
 let merge = {};
@@ -55,7 +55,6 @@ function basicNode(node)
     const nodeinfo = node?.nodeinfo;
     if (nodeinfo) {
         const bnode = {
-            id: nodeinfo.id,
             num: node.id,
             favorite: node.favorite,
             short_name: nodeinfo.short_name,
