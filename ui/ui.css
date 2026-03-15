@@ -8,9 +8,9 @@
     --container-title-bg-color: white;
     --container-border-color: grey;
     --filter-border-color: grey;
-    --text-fg-color: black;
+    --text-fg-color: #e0e0e0;
     --text-fg-color2: #e0e0e0;
-    --text-bg-color: #e0e0e0;
+    --text-bg-color: #196328;
     --text-bg-color2: #121f7e;
     --text-border-color: transparent;
     --text-date-color: #606060;
@@ -57,7 +57,7 @@
     --filter-border-color: #606060;
     --text-fg-color: #e0e0e0;
     --text-fg-color2: #e0e0e0;
-    --text-bg-color: #303030;
+    --text-bg-color: #196328;
     --text-bg-color2: #121f7e;
     --text-border-color: transparent;
     --text-date-color: #a0a0a0;
