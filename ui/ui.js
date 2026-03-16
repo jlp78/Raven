@@ -483,7 +483,6 @@ function updateTexts(msg)
     clearTimeout(updateTextTimeout);
     const channel = getChannel(msg.namekey);
     channel.state = msg.state;
-    resetPost();
     const t = I("texts");
     texts = msg.texts;
     t.innerHTML = msg.texts.map(t => htmlText(t, useImage(msg.namekey))).join("");
@@ -1077,8 +1076,8 @@ function showNamekey(namekey)
             clearTimeout(updateTextTimeout);
             updateTextTimeout = setTimeout(_ => {
                 I("texts").innerHTML = "";
-                resetPost();
             }, 500);
+            resetPost();
         }
     }
 }
