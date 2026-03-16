@@ -139,13 +139,13 @@ export function tick()
             switch (msg.cmd) {
                 case "connected":
                 {
-                    notify({ cmd: "me" });
-                    notify({ cmd: "channels" });
-                    notify({ cmd: "favorites" });
-                    notify({ cmd: "nodes" });
+                    notify({ cmd: "me", socket: msg.socket });
+                    notify({ cmd: "channels", socket: msg.socket });
+                    notify({ cmd: "favorites", socket: msg.socket });
+                    notify({ cmd: "nodes", socket: msg.socket });
                     const namekey = channel.getAllLocalChannels()[0].namekey;
-                    notify({ cmd: "texts", namekey: namekey }, `texts ${namekey}`);
-                    notify({ cmd: "winmenu" });
+                    notify({ cmd: "texts", namekey: namekey, socket: msg.socket }, `texts ${namekey}`);
+                    notify({ cmd: "winmenu", socket: msg.socket });
                     break;
                 }
                 case "me":
@@ -164,7 +164,7 @@ export function tick()
                             push(nodes, node);
                         }
                     }
-                    send({ event: msg.cmd, nodes: nodes });
+                    send({ event: msg.cmd, nodes: nodes }, msg.socket);
                     break;
                 }
                 case "favorites":
@@ -231,7 +231,7 @@ export function tick()
                 }
                 case "texts":
                 {
-                    send({ event: msg.cmd, namekey: msg.namekey, texts: textmessage.getMessages(msg.namekey), state: textmessage.state(msg.namekey) });
+                    send({ event: msg.cmd, namekey: msg.namekey, texts: textmessage.getMessages(msg.namekey), state: textmessage.state(msg.namekey) }, msg.socket);
                     break;
                 }
                 case "text":

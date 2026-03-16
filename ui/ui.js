@@ -936,17 +936,23 @@ function winlinkMenuHide()
 
 function winlinkMenu(msg)
 {
+    let changed = false;
     if (msg.menu.length) {
         const menus = Q("#winmenu .menus");
-        menus.innerHTML = htmlWinlinkMenu(msg.menu);
-        winlink = {};
-        for (let i = 0; i < msg.menu.length; i++) {
-            const submenu = msg.menu[i][1];
-            for (let j = 0; j < submenu.length; j++) {
-                winlink[`${msg.menu[i][0]}/${submenu[j]}`] = true;
+        const html = htmlWinlinkMenu(msg.menu);
+        if (menus.innerHTML != html) {
+            menus.innerHTML = html;
+            winlink = {};
+            for (let i = 0; i < msg.menu.length; i++) {
+                const submenu = msg.menu[i][1];
+                for (let j = 0; j < submenu.length; j++) {
+                    winlink[`${msg.menu[i][0]}/${submenu[j]}`] = true;
+                }
             }
+            changed = true;
         }
     }
+    return changed;
 }
 
 function winlinkFormDisplay(msg, action)
@@ -1179,8 +1185,9 @@ function startup()
                     break;
                 }
                 case "winmenu":
-                    winlinkMenu(msg);
-                    resetPost();
+                    if (winlinkMenu(msg)) {
+                        resetPost();
+                    }
                     break;
                 case "winform":
                     winlinkFormDisplay(msg, "Cancel");
