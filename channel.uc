@@ -81,6 +81,9 @@ function setLocalChannel(config)
     if (split(config.namekey, " ")[1] === meshcorePublicChannel) {
         chan.meshcore = true;
     }
+    if (config.namekey === "AREDN og==") {
+        chan.telemetry = true;
+    }
     if (config.telemetry !== null) {
         chan.telemetry = config.telemetry;
     }
