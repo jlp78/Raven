@@ -15,10 +15,14 @@ const q = [];
 let merge = {};
 let update = null;
 let activity = false;
+let align = "right";
 
 export function setup(config)
 {
     update = config.update;
+    if (config.ui?.message?.align === "left") {
+        align = "left";
+    }
     timers.setInterval("event", 0, 10 * 60);
     timers.setInterval("keepalive", 60);
 };
@@ -70,6 +74,13 @@ function basicNode(node)
         return bnode;
     }
     return null;
+}
+
+function meNode(node)
+{
+    node = basicNode(node);
+    node.align = align;
+    return node;
 }
 
 function fullNode(node)
@@ -139,7 +150,7 @@ export function tick()
                 }
                 case "me":
                 {
-                    send({ event: msg.cmd, node: basicNode(nodedb.getNode(node.getInfo().id)) });
+                    send({ event: msg.cmd, node: meNode(nodedb.getNode(node.getInfo().id)) });
                     break;
                 }
                 case "nodes":
