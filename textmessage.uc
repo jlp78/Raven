@@ -157,7 +157,7 @@ export function updateChannelBadge(namekey, badge)
     if (channel.isDirect(namekey)) {
         const id = int(split(namekey, " ")[1]);
         const node = nodedb.getNode(id, false);
-        if (node && node.favorite != badge) {
+        if (node && node.nodeinfo && node.favorite != badge) {
             node.favorite = badge;
             nodedb.updateNode(node);
             event.notify({ cmd: "favorites" });
