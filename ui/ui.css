@@ -299,7 +299,7 @@ a
 #post textarea
 {
     width: 100%;
-    height: 46px;
+    height: 62px;
     color: var(--post-text-color);
     background-color: var(--post-bg-color);
     font-size: var(--post-font-size);
