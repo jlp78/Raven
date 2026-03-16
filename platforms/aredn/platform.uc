@@ -384,7 +384,15 @@ function orderStores()
     if (meshtasticEnabled || meshcoreEnabled || meshipBridgeEnabled) {
         info.bridge = [];
         if (meshtasticEnabled) {
-            push(info.bridge, { meshtastic: {} });
+            const mconf = {};
+            for (let i = 0; i < length(channels); i++) {
+                if (channels[i].meshtastic) {
+                    mconf.preset = split(channels[i].namekey, " ")[0];
+                    break;
+                }
+            }
+            const mchan = channel.getChannelsByMeshtasticHash(null)[0];
+            push(info.bridge, { meshtastic: mconf });
         }
         if (meshcoreEnabled) {
             push(info.bridge, { meshcore: {} });
