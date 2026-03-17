@@ -359,11 +359,17 @@ function updateMe(msg)
 
 function updateNodes(msg)
 {
-    I("nodes").innerHTML = msg.nodes.map(n => {
+    const html = msg.nodes.map(n => {
         n = nodeExpand(n);
         nodes[n.num] = n
         return htmlNode(n);
     }).join("");
+    if (msg.append) {
+        I("nodes").innerHTML += html;
+    }
+    else {
+        I("nodes").innerHTML = html;
+    }
 }
 
 function updateFavorites(msg)

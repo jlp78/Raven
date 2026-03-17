@@ -10,7 +10,8 @@ import * as router from "router";
 import * as winlink from "winlink";
 import * as version from "version";
 
-const MAXNODES = 200;
+const MAXNODES = 400;
+const MAXNODESPAYLOAD = 200;
 
 const q = [];
 let merge = {};
@@ -166,7 +167,9 @@ export function tick()
                             push(nodes, node);
                         }
                     }
-                    send({ event: msg.cmd, nodes: nodes }, msg.socket);
+                    for (let i = 0; i < length(nodes); i += MAXNODESPAYLOAD) {
+                        send({ event: msg.cmd, nodes: slice(nodes, i, i + MAXNODESPAYLOAD), append: i > 0 }, msg.socket);
+                    }
                     break;
                 }
                 case "favorites":
