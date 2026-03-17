@@ -10,7 +10,7 @@ import * as router from "router";
 import * as winlink from "winlink";
 import * as version from "version";
 
-const MAXNODES = 300;
+const MAXNODES = 200;
 
 const q = [];
 let merge = {};
