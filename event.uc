@@ -16,7 +16,6 @@ const MAXNODESPAYLOAD = 200;
 const q = [];
 let merge = {};
 let update = null;
-let activity = false;
 let align = "right";
 
 export function setup(config)
@@ -33,9 +32,6 @@ function send(msg, to)
 {
     DEBUG1("send %J\n", msg);
     websocket.send(to, sprintf("%J", msg));
-    if (!to) {
-        activity = true;
-    }
 }
 
 export function queue(msg)
@@ -327,10 +323,7 @@ export function tick()
         merge = {};
     }
     if (timers.tick("keepalive")) {
-        if (!activity) {
-            send({ event: "beat" });
-        }
-        activity = false;
+        send({ event: "beat" });
     }
 };
 
