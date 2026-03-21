@@ -11,10 +11,12 @@ const HW_NATIVE = 254;
 const HW_MESHCORE = 253;
 
 const DEFAULT_INTERVAL = 3 * 60 * 60;
+const DEFAULT_ADVERT_INTERVAL = 24 * 60 * 60;
  
 export function setup(config)
 {
     timers.setInterval("nodeinfo", 60, config.nodeinfo?.interval ?? DEFAULT_INTERVAL);
+    timers.setInterval("advert", 60, config.advert?.interval ?? DEFAULT_ADVERT_INTERVAL);
 };
 
 function hw2platform(hw)
@@ -70,6 +72,8 @@ export function tick()
         for (let i = 0; i < length(telemetry); i++) {
             router.queue(createNodeinfoMessage(null, telemetry[i].namekey, null));
         }
+    }
+    if (timers.tick("advert")) {
         router.queue(createAdvertMessage());
     }
 };
