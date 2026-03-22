@@ -131,7 +131,7 @@ export function catchUpMessagesTo(namekey, id)
         cm.cursor = id;
         saveMessages(namekey);
     }
-    return { count: cm.count, cursor: cm.cursor, max: cm.max, badge: cm.badge, images: cm.images, winlink: cm.winlink };
+    return { count: cm.count, cursor: cm.cursor, last: cm.messages[length(cm.messages) - 1]?.id, max: cm.max, badge: cm.badge, images: cm.images, winlink: cm.winlink };
 };
 
 export function updateSettings(channels)
@@ -196,7 +196,7 @@ export function createDirectMessage(to, text, structuredtext, replyto, last)
 export function state(namekey)
 {
     const cm = loadMessages(namekey);
-    return { count: cm.count, cursor: cm.cursor, last: cm.messages[length(cm.messages) - 1].id, max: cm.max, badge: cm.badge, images: cm.images, winlink: cm.winlink };
+    return { count: cm.count, cursor: cm.cursor, last: cm.messages[length(cm.messages) - 1]?.id, max: cm.max, badge: cm.badge, images: cm.images, winlink: cm.winlink };
 };
 
 export function setup(config)
