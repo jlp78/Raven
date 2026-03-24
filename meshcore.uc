@@ -31,7 +31,7 @@ const ACK_INTERVAL = 60; // 1 minute
 
 const HW_MESHCORE = 253;
 
-const MAX_TEXT_MESSAGE_LENGTH = 155;
+const MAX_TEXT_MESSAGE_LENGTH = 150;
 
 const ROUTE_TYPE_TRANSPORT_FLOOD = 0x00;
 const ROUTE_TYPE_FLOOD = 0x01;
@@ -52,6 +52,11 @@ const PAYLOAD_TYPE_MULTIPART = 0x0a;
 const PAYLOAD_TYPE_CONTROL = 0x0b;
 const PAYLOAD_TYPE_RAW_CUSTOM = 0x0f;
 
+const PAYLOAD_PATHLEN_1 = 0x00;
+const PAYLOAD_PATHLEN_2 = 0x40;
+const PAYLOAD_PATHLEN_3 = 0x80;
+const PAYLOAD_PATHLEN_MASK = 0x3F;
+
 const PAYLOAD_VER_1 = 0x00;
 
 const ADV_TYPE_NONE = 0;
@@ -70,7 +75,7 @@ const TEXT_TYPE_CLI = 0x01;
 const TEXT_TYPE_SIGNED = 0x02;
 
 let s = null;
-let bridgeHash = null;
+let prefixHash = null;
 let twoPrefix = null;
 
 let sharedKeys = {};
@@ -163,15 +168,23 @@ export function setup(config)
     if (!config.meshcore) {
         return;
     }
-    const address = config.meshcore.address;
-    bridgeHash = config.meshcore.bridgehash;
-    if (bridgeHash !== null) {
-        twoPrefix = chr(bridgeHash, node.getMeshcoreHash());
+    const bridgeHash = config.meshcore.bridgehash;
+    if (bridgeHash === null) {
+        print("Missing bridge hash - disabling direct routing\n");
+        prefixHash = node.getMeshcoreHash(1);
     }
     else {
-        print("Missing bridge hash - disabling direct routing\n");
+        if (bridgeHash > 255) {
+            prefixHash = node.getMeshcoreHash(2);
+            twoPrefix = struct.pack(">2H", bridgeHash, prefixHash);
+        }
+        else {
+            prefixHash = node.getMeshcoreHash(1);
+            twoPrefix = chr(bridgeHash, prefixHash);
+        }
     }
 
+    const address = config.meshcore.address;
     s = socket.create(socket.AF_INET, socket.SOCK_DGRAM, 0);
     s.bind({
         port: PORT
@@ -271,7 +284,8 @@ function decodePacket(pkt)
             return null;
     }
 
-    const pathlen = ord(pkt, offset);
+    const pathinfo = ord(pkt, offset);
+    const pathlen = (pathinfo >= PAYLOAD_PATHLEN_2 ? 2 : 1) * (pathinfo & PAYLOAD_PATHLEN_MASK);
     const path = substr(pkt, offset + 1, pathlen);
     offset += pathlen + 1;
 
@@ -290,7 +304,7 @@ function decodePacket(pkt)
         }
     }
 
-    const pkthash = crypto.sha256hash(chr(type) + (type === PAYLOAD_TYPE_TRACE ? struct.pack(">H", pathlen) : "") + substr(pkt, offset));
+    const pkthash = crypto.sha256hash(chr(type) + (type === PAYLOAD_TYPE_TRACE ? struct.pack(">H", pathinfo & PAYLOAD_PATHLEN_MASK) : "") + substr(pkt, offset));
     msg.id = (pkthash[0] << 24) | (pkthash[1] << 16) + (pkthash[2] << 8) + pkthash[3];
 
     switch (type) {
@@ -325,7 +339,7 @@ function decodePacket(pkt)
             if (!secretkey) {
                 const fromnodes = nodedb.getNodesByPublickeyHash(fromhash, false);
                 const tonodes = nodedb.getNodesByPublickeyHash(tohash, true);
-                if (!me.is_unmessagable && node.getMeshcoreHash() === tohash) {
+                if (!me.is_unmessagable && node.getMeshcoreHash(1) === tohash) {
                     push(tonodes, {
                         me: true,
                         id: node.id(),
@@ -389,7 +403,8 @@ function decodePacket(pkt)
                     case PAYLOAD_TYPE_PATH:
                     {
                         let offset = 1;
-                        const pathlen = ord(plain);
+                        const pathinfo = ord(plain);
+                        const pathlen = (pathinfo >= PAYLOAD_PATHLEN_2 ? 2 : 1) * (pathinfo & PAYLOAD_PATHLEN_MASK);
                         const path = substr(plain, offset, pathlen);
                         offset += pathlen;
                         if (offset < length(plain)) {
@@ -538,12 +553,20 @@ function makeNativeMsg(data)
 
 function makePktHeader(type, path)
 {
-    if (path && twoPrefix !== null) {
-        // Remove ourselves from the beginning of the path before appending it.
-        return chr((PAYLOAD_VER_1 << 6) | (type << 2) | ROUTE_TYPE_DIRECT) + chr(length(path) - 1) + substr(path, 1);
+    if (prefixHash > 255) {
+        if (path && twoPrefix !== null) {
+            return chr((PAYLOAD_VER_1 << 6) | (type << 2) | ROUTE_TYPE_DIRECT) + chr(PAYLOAD_PATHLEN_2 + length(path) / 2 - 1) + substr(path, 2);
+        }
+        return struct.pack(">BBH", (PAYLOAD_VER_1 << 6) | (type << 2) | ROUTE_TYPE_FLOOD, PAYLOAD_PATHLEN_2 + 1, prefixHash);
     }
-    // If we dont have a path, create a flood route building a new path.
-    return chr((PAYLOAD_VER_1 << 6) | (type << 2) | ROUTE_TYPE_FLOOD) + chr(1, node.getMeshcoreHash());
+    else {
+        if (path && twoPrefix !== null) {
+            // Remove ourselves from the beginning of the path before appending it.
+            return chr((PAYLOAD_VER_1 << 6) | (type << 2) | ROUTE_TYPE_DIRECT) + chr(PAYLOAD_PATHLEN_1 + length(path) - 1) + substr(path, 1);
+        }
+        // If we dont have a path, create a flood route building a new path.
+        return struct.pack("BBB", (PAYLOAD_VER_1 << 6) | (type << 2) | ROUTE_TYPE_FLOOD, PAYLOAD_PATHLEN_1 + 1, prefixHash);
+    }
 }
 
 function getDirectSendKey(msg)
@@ -665,9 +688,18 @@ function makeMeshcoreMsg(msg)
             if (msg.path) {
                 const keys = getDirectSendKey(msg);
                 if (keys) {
-                    const returned_path = reverse(msg.path); // msg.path is how to get from here to there, the returned_path is the reverse of that.
-                    const plain = chr(length(returned_path)) + returned_path + chr(PAYLOAD_TYPE_ACK) + struct.pack("4B", ...msg.data.routing.checksum);
-
+                    let plain;
+                    if (prefixHash > 255) {
+                        let return_path = "";
+                        for (let i = length(msg.path) - 2; i >= 0; i -= 2) {
+                            return_path += substr(msg.path, i, 2);
+                        }
+                        plain = chr(length(returned_path) / 2) + returned_path + chr(PAYLOAD_TYPE_ACK) + struct.pack("4B", ...msg.data.routing.checksum);
+                    }
+                    else {
+                        const returned_path = reverse(msg.path); // msg.path is how to get from here to there, the returned_path is the reverse of that.
+                        plain = chr(length(returned_path)) + returned_path + chr(PAYLOAD_TYPE_ACK) + struct.pack("4B", ...msg.data.routing.checksum);
+                    }
                     const encrypted = crypto.encryptECB(keys.sharedkey, pad(plain));
                     const hmac = crypto.sha256hmac(keys.sharedkey, encrypted);
 

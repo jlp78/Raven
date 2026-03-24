@@ -185,7 +185,7 @@ export function getLocation(precise)
     return precise ? preciseLocation : fuzzyLocation;
 };
 
-export function getMeshcoreHash()
+export function getMeshcoreHash(len)
 {
-    return ord(me.mc_public_key);
+    return len === 2 ? struct.unpack(">H", me.mc_public_key)[0] : ord(me.mc_public_key);
 };
