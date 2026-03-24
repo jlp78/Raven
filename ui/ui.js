@@ -607,7 +607,7 @@ function sendMessage(event)
 {
     const text = event.target.value;
     if (event.type === "keyup") {
-        Q("#post .count").innerText = `${Math.max(0, text.length)}/155`;
+        Q("#post .count").innerText = `${Math.max(0, text.length)}/150`;
     }
     else if (event.key === "Escape") {
         resetPost(true);
