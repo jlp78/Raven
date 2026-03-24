@@ -149,6 +149,9 @@ let storeSort = 0;
     if (config.meshtastic && config.meshtastic?.address === null) {
         config.meshtastic.address = ucdata.lan_ip;
     }
+    if (config.meshcore && config.meshcore?.address === null) {
+        config.meshcore.address = ucdata.lan_ip;
+    }
 
     if (config.role === "client_mute" && (config.meshtastic || config.meshcore || ucdata.isSupernode) && config.meship) {
         config.role = "client";
