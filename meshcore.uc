@@ -70,7 +70,6 @@ const TEXT_TYPE_CLI = 0x01;
 const TEXT_TYPE_SIGNED = 0x02;
 
 let s = null;
-let bridge = ADDRESS;
 let bridgeHash = null;
 let twoPrefix = null;
 
@@ -165,9 +164,6 @@ export function setup(config)
         return;
     }
     const address = config.meshcore.address;
-    if (config.meshcore.bridge) {
-        bridge = config.meshcore.bridge;
-    }
     bridgeHash = config.meshcore.bridgehash;
     if (bridgeHash !== null) {
         twoPrefix = chr(bridgeHash, node.getMeshcoreHash());
@@ -703,7 +699,7 @@ export function send(msg)
         const pkt = makeMeshcoreMsg(msg);
         if (pkt) {
             const r = s.send(pkt, 0, {
-                address: bridge,
+                address: ADDRESS,
                 port: PORT
             });
             if (r == null) {
