@@ -693,7 +693,7 @@ function resetPost(clearContent)
 function useImage(namekey)
 {
     const channel = getChannel(namekey);
-    return channel && !channel.meshtastic && channel.state.images;
+    return channel && !channel.meshtastic && namekey.split(" ")[1] !== "izOH6cXN6mrJ5e26oRXNcg==" && channel.state.images;
 }
 
 function downloadImageFile(file)
