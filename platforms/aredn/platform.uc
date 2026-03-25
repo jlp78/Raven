@@ -29,6 +29,7 @@ let meshtasticEnabled = false;
 let meshcoreEnabled = false;
 let meshipBridgeEnabled = false;
 let storesEnabled = null;
+let hasMeshIpForwarder = false;
 let bridges = [];
 const badges = {};
 let watcher = null;
@@ -460,6 +461,7 @@ function refreshTargets()
     const meshcoreForwarders = [];
     const meshipForwarders = [];
     stores = {};
+    hasMeshIpForwarder = false;
     for (let i = 0; i < length(published); i++) {
         const service = published[i];
         if (service.id !== myid) {
@@ -485,6 +487,7 @@ function refreshTargets()
                         push(meshcoreForwarders, service);
                     }
                     if (b.meship) {
+                        hasMeshIpForwarder = true;
                         push(meshipForwarders, service);
                     }
                 }
@@ -542,6 +545,11 @@ function refreshTargets()
     return ucdata.mapUrl ? replace(replace(ucdata.mapUrl, "(lat)", lat), "(lon)", lon) : null;
 }
 
+/* export */ function canAcceptIPAddress(address)
+{
+    return hasMeshIpForwarder || system(`/sbin/ip route show table 20 | grep -q ${address}`) === 0;
+}
+
 return {
     setup,
     shutdown,
@@ -562,5 +570,6 @@ return {
     process,
     handle,
     handleChanges,
-    getMap
+    getMap,
+    canAcceptIPAddress
 };

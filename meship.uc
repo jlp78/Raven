@@ -37,7 +37,14 @@ export function isBridge()
 export function recv()
 {
     try {
-        return json(s.recvmsg(65535).data);
+        const m = s.recvmsg(65535);
+        const msg = json(m.data);
+        // Avoid messages from remote networks if we don't have our own ip forwarder available.
+        // This avoid async messages where we receive from remote networks but cannot reply.
+        if (!bridge && msg.transport === "native" && !platform.canAcceptIPAddress(m.address.address)) {
+            return null;
+        }
+        return msg;
     }
     catch (_) {
         return null;

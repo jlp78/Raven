@@ -115,6 +115,11 @@ function path(name)
 {
 }
 
+/* export */ function canAcceptIPAddress()
+{
+    return true;
+}
+
 return {
     setup,
     shutdown,
@@ -135,5 +140,6 @@ return {
     process,
     handle,
     handleChanges,
-    getMap
+    getMap,
+    canAcceptIPAddress
 };
