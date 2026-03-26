@@ -63,11 +63,13 @@ export function process()
                 if (node.fromMe(msg) || tonodeinfo?.platform === "native" || meship.isBridge()) {
                     toip = true;
                 }
-                if (!tonodeinfo || tonodeinfo.platform === "meshtastic") {
-                    tomeshtastic = true;
-                }
-                if (!tonodeinfo || tonodeinfo.platform === "meshcore") {
-                    tomeshcore = true;
+                if (msg.namekey !== "AREDN og==") {
+                    if (!tonodeinfo || tonodeinfo.platform === "meshtastic") {
+                        tomeshtastic = true;
+                    }
+                    if (!tonodeinfo || tonodeinfo.platform === "meshcore") {
+                        tomeshcore = true;
+                    }
                 }
             }
             // Incoming bridge traffic can only route via IP
