@@ -493,7 +493,7 @@ function refreshTargets()
                     }
                 }
             }
-            if (service.store) {
+            if (!ucdata.isSupernode && service.store) {
                 for (let j = 0; j < length(service.store); j++) {
                     const key = service.store[j];
                     if (!stores[key]) {
