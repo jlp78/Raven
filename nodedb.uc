@@ -66,17 +66,18 @@ export function createNode(id)
     return nodedb[id];
 };
 
-export function getNodeByLongname(longname)
+export function getNodeByMeshcoreLongname(longname)
 {
     for (let k in nodedb) {
-        if (nodedb[k].nodeinfo?.long_name === longname) {
+        const info = nodedb[k].nodeinfo;
+        if (info && info.long_name === longname && info.platform === "meshcore") {
             return nodedb[k];
         }
     }
     return null;
 };
 
-export function getNodeByPublickey(public_key, create)
+export function getNodeByMeshcorePublickey(public_key, create)
 {
     for (let k in nodedb) {
         if (nodedb[k].nodeinfo?.mc_public_key === public_key) {

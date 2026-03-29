@@ -230,7 +230,7 @@ function htmlText(text, useimage)
                 short_name: short_name,
                 long_name: text.textfrom,
                 colors: nodeColors(from),
-                platform: "meshtastic"
+                platform: "meshcore"
             };
         }
     }

@@ -501,7 +501,7 @@ function decodePacket(pkt)
             if (type & ADV_NAME_MASK) {
                 advert.name = substr(pkt, offset);
             }
-            msg.from = nodedb.getNodeByPublickey(advert.public_key).id;
+            msg.from = nodedb.getNodeByMeshcorePublickey(advert.public_key).id;
             return msg;
         }
         case PAYLOAD_TYPE_GRP_TXT:
@@ -522,7 +522,7 @@ function decodePacket(pkt)
                     msg.namekey = hashchannels[i].namekey;
                     msg.rx_time = timestampAndFlags[0];
                     const fm = split(substr(plain, 5), ": ", 2);
-                    msg.from = nodedb.getNodeByLongname(fm[0])?.id ?? node.UNKNOWN;
+                    msg.from = nodedb.getNodeByMeshcoreLongname(fm[0])?.id ?? node.UNKNOWN;
                     msg.data.text_message = rtrim(fm[1], "\u0000");
                     msg.data.text_from = fm[0];
                     return msg;
