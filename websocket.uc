@@ -134,7 +134,8 @@ function decode(state)
                             push(messages, { binary: state.msg, socket: state.s });
                             break;
                         case OP_PING:
-                            state.s.send(struct.pack("2B", FIN | OP_PONG, l) + state.msg);
+                            const reply = substr(state.msg, 0, 125);
+                            state.s.send(struct.pack("2B", FIN | OP_PONG, length(reply)) + reply);
                             break;
                         default:
                             break;
