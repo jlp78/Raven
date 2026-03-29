@@ -229,7 +229,8 @@ function htmlText(text, useimage)
             n = {
                 short_name: short_name,
                 long_name: text.textfrom,
-                colors: nodeColors(from)
+                colors: nodeColors(from),
+                platform: "meshtastic"
             };
         }
     }
