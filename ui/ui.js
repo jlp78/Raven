@@ -292,7 +292,7 @@ function htmlChannelConfig()
         const ne = echannels[i + 1] || {};
         return `<form class="c">
             <input value="${e.meshtastic ? "Meshtastic" : e.name}" oninput="typeChannelName(${i}, event.target.value)" required minlength="1" maxlength="11" size="11" placeholder="Name" ${e.aredn || e.meshtastic || e.meshcore ? "disabled" : ""} pattern="[^ ]+">
-            <input value="${e.meshtastic ? e.name : e.key}" oninput="typeChannelKey(${i}, event.target.value)" required minlength="4" maxlength="43" size="43" placeholder="Key" ${e.aredn || e.meshtastic || e.meshcore || e.name[0] === "#" ? "disabled" : ""} pattern="[\\-A-Za-z0-9+\\/]*={0,3}">
+            <input value="${e.meshtastic ? e.name : e.key}" oninput="typeChannelKey(${i}, event.target.value)" required minlength="4" maxlength="43" size="43" placeholder="ID or Key" ${e.aredn || e.meshtastic || e.meshcore || e.name[0] === "#" ? "disabled" : ""} pattern="[\\-A-Za-z0-9+\\/]*={0,3}">
             <input value="${e.max}" oninput="typeChannelMax(${i}, event.target.value)" required minlength="2" maxlength="4" size="4" placeholder="Count">
             <div><input ${e.badge ? "checked" : ""} type="checkbox" oninput="typeChannelBadge(${i}, event.target.checked)"></div>
             <div><input ${e.images ? "checked" : ""} type="checkbox" oninput="typeChannelImages(${i}, event.target.checked)" ${e.meshtastic || e.meshcore ? "disabled" : ""}></div>
