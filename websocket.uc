@@ -183,13 +183,22 @@ function read(ns)
             const i = index(state.incoming, "\r\n\r\n");
             if (i !== -1) {
                 let key = null;
+                let agent = "";
                 const lines = split(substr(state.incoming, 0, i), "\r\n");
                 if (platform.auth(lines)) {
                     for (let l = 0; l < length(lines); l++) {
                         const line = lines[l];
                         const kv = split(line, ": ");
-                        if (lc(kv[0]) === "sec-websocket-key") {
-                            key = kv[1];
+                        const k = lc(kv[0]);
+                        switch (k) {
+                            case "sec-websocket-key":
+                                key = kv[1];
+                                break;
+                            case "user-agent":
+                                agent = kv[1];
+                                break;
+                            default:
+                                break;
                         }
                     }
                 }
@@ -205,7 +214,7 @@ function read(ns)
                     ns.send(`HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ${digest}\r\n\r\n`);
                     state.state = S_MSGRECV;
                     state.incoming = substr(state.incoming, i + 4);
-                    return [ { text: '{"cmd":"connected"}', socket: ns }, ...decode(state) ];
+                    return [ { text: '{"cmd":"connected","agent":"' + agent + '"}', socket: ns }, ...decode(state) ];
                 }
             }
             break;

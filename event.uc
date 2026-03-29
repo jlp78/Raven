@@ -9,8 +9,10 @@ import * as textstore from "textstore";
 import * as router from "router";
 import * as winlink from "winlink";
 
-const MAXNODES = 400;
-const MAXNODESPAYLOAD = 200;
+const MAXNODES = 1000;
+const MAXNODESSAFARI = 400;
+const MAXFAVORITES = 100;
+const MAXNODESPAYLOAD = 100;
 
 const q = [];
 let merge = {};
@@ -139,9 +141,9 @@ export function tick()
                     notify({ cmd: "me", socket: msg.socket });
                     notify({ cmd: "channels", socket: msg.socket });
                     notify({ cmd: "favorites", socket: msg.socket });
-                    notify({ cmd: "nodes", socket: msg.socket });
                     const namekey = channel.getAllLocalChannels()[0].namekey;
-                    notify({ cmd: "texts", namekey: namekey, socket: msg.socket }, `texts ${namekey}`);
+                    const agent = lc(msg.agent);
+                    notify({ cmd: "nodes-texts", namekey: namekey, max: index(agent, "chrome") === -1 && index(agent, "safari") !== -1 ? MAXNODESSAFARI : MAXNODES, socket: msg.socket });
                     notify({ cmd: "winmenu", socket: msg.socket });
                     break;
                 }
@@ -150,19 +152,29 @@ export function tick()
                     send({ event: msg.cmd, node: meNode(nodedb.getNode(node.getInfo().id)) });
                     break;
                 }
-                case "nodes":
+                case "nodes-texts":
                 {
                     const raw = nodedb.getNodes(false);
                     sort(raw, (a, b) => b.sortkey - a.sortkey);
-                    const nodes = [];
-                    for (let i = 0; i < length(raw) && length(nodes) < MAXNODES; i++) {
+                    let nodes = [];
+                    let append = false;
+                    const limit = min(length(raw), msg.max);
+                    for (let i = 0; i < limit; i++) {
                         const node = basicNode(raw[i]);
                         if (node) {
                             push(nodes, node);
                         }
+                        if (length(nodes) === MAXNODESPAYLOAD) {
+                            send({ event: "nodes", nodes: nodes, append: append }, msg.socket);
+                            nodes = [];
+                            if (append === false) {
+                                send({ event: "texts", namekey: msg.namekey, texts: textmessage.getMessages(msg.namekey), state: textmessage.state(msg.namekey) }, msg.socket);
+                            }
+                            append = true;
+                        }
                     }
-                    for (let i = 0; i < length(nodes); i += MAXNODESPAYLOAD) {
-                        send({ event: msg.cmd, nodes: slice(nodes, i, i + MAXNODESPAYLOAD), append: i > 0 }, msg.socket);
+                    if (length(nodes)) {
+                        send({ event: "nodes", nodes: nodes, append: append }, msg.socket);
                     }
                     break;
                 }
@@ -171,7 +183,7 @@ export function tick()
                     const raw = nodedb.getNodes(true);
                     sort(raw, (a, b) => a.nodeinfo?.long_name < b.nodeinfo?.long_name ? -1 : a.nodeinfo?.long_name > b.nodeinfo?.long_name ? 1 : 0);
                     const nodes = [];
-                    for (let i = 0; i < length(raw) && length(nodes) < MAXNODES; i++) {
+                    for (let i = 0; i < length(raw) && length(nodes) < MAXFAVORITES; i++) {
                         const node = basicNode(raw[i]);
                         if (node) {
                             push(nodes, node);
