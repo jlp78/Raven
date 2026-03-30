@@ -246,7 +246,7 @@ export function send(to, msg)
     const hdr = encodeHeader(msg);
     const targets = to ? [ null, to ] : allhandles;
     for (let i = 1; i < length(targets); i++) {
-        const r = targets[i].sendmsg([ hdr, msg ], null, null, socket.MSG_DONTWAIT);
+        const r = targets[i].sendmsg([ hdr, msg ]);
         if (r === null) {
             DEBUG0("websocket:send error: %s\n", socket.error());
             close(targets[i]);

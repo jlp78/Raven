@@ -141,10 +141,10 @@ export function tick()
                     notify({ cmd: "me", socket: msg.socket });
                     notify({ cmd: "channels", socket: msg.socket });
                     notify({ cmd: "favorites", socket: msg.socket });
+                    notify({ cmd: "winmenu", socket: msg.socket });
                     const namekey = channel.getAllLocalChannels()[0].namekey;
                     const agent = lc(msg.agent);
                     notify({ cmd: "nodes-texts", namekey: namekey, max: index(agent, "chrome") === -1 && index(agent, "safari") !== -1 ? MAXNODESSAFARI : MAXNODES, socket: msg.socket });
-                    notify({ cmd: "winmenu", socket: msg.socket });
                     break;
                 }
                 case "me":
