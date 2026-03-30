@@ -175,6 +175,9 @@ export function tick()
                     }
                     if (length(nodes)) {
                         send({ event: "nodes", nodes: nodes, append: append }, msg.socket);
+                        if (append === false) {
+                            send({ event: "texts", namekey: msg.namekey, texts: textmessage.getMessages(msg.namekey), state: textmessage.state(msg.namekey) }, msg.socket);
+                        }
                     }
                     break;
                 }
