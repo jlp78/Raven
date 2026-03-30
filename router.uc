@@ -5,6 +5,7 @@ import * as node from "node";
 import * as nodedb from "nodedb";
 import * as socket from "socket";
 import * as timers from "timers";
+import * as channel from "channel";
 import * as websocket from "websocket";
 
 const MAX_RECENT = 128;
@@ -67,8 +68,11 @@ export function process()
                     if (!tonodeinfo || tonodeinfo.platform === "meshtastic") {
                         tomeshtastic = true;
                     }
-                    if (!tonodeinfo || tonodeinfo.platform === "meshcore") {
-                        tomeshcore = true;
+                    // Dont forward any Meshtastic presets to MeshCore
+                    if (!channel.isMeshtasticPreset(msg.namekey)) {
+                        if (!tonodeinfo || tonodeinfo.platform === "meshcore") {
+                            tomeshcore = true;
+                        }
                     }
                 }
             }

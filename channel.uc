@@ -119,6 +119,15 @@ export function getChannelByNameKey(namekey)
     return channelByNameKey[namekey];
 };
 
+export function isMeshtasticPreset(namekey)
+{
+    if (!namekey) {
+        return true;
+    }
+    const nk = split(namekey, " ");
+    return nk[1] === "AQ==" && index(meshtasticChannelPresets, nk[0]) !== -1;
+};
+
 export function getAllLocalChannels()
 {
     return values(localChannelByNameKey);

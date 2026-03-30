@@ -684,7 +684,8 @@ function makeMeshcoreMsg(msg)
         }
         else {
             const chan = channel.getChannelByNameKey(msg.namekey);
-            if (chan) {
+            // MeshCore symmetric keys are always 128-bit (16-bytes), so if that's not the key we have we cannot send here
+            if (chan && length(chan.symmetrickey) === 16) {
                 const name = nodedb.getNode(msg.from, false)?.nodeinfo?.long_name ?? msg.data.text_from ?? `${msg.from}`;
                 let text = `${name}: ${msg.data.text_message}`;
                 if (msg.data.reply_id) {
