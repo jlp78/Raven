@@ -207,7 +207,7 @@ export function process(msg)
         checkMissing(msg);
     }
     if (enabled) {
-        if (msg.data?.text_message) {
+        if (msg.data?.text_message && !channel.isDirect(msg.namekey)) {
             addMessage(msg);
             if (msg.transport === "native") {
                 router.queue(message.createMessage(msg.from, null, msg.namekey, "textstore_ack", {
