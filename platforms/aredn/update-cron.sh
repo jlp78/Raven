@@ -9,7 +9,7 @@ if [ -f /etc/package_store/raven.apk ]; then
 fi
 if [ -f /etc/package_store/raven.ipk ]; then
     rm -f /tmp/raven.ipk
-    wget -q -T 5 -O /tmp/raven.ipk https://github.com/kn6plv/Raven/raw/refs/heads/main/raven-alpha.ipk
+    wget -q -T 5 -O /tmp/raven.ipk https://github.com/kn6plv/Raven/raw/refs/heads/main/raven_alpha.ipk
     if [ -f /tmp/raven.ipk ] && ! cmp -s /tmp/raven.ipk /etc/package_store/raven.ipk ; then
         mv /tmp/raven.ipk /etc/package_store/raven.ipk
         opkg -force-overwrite install /etc/package_store/raven.ipk

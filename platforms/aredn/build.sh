@@ -96,6 +96,7 @@ mkapk.py \
     -p ucode,curl \
     -o .
 
+cp -r raven_${VERSION}_all.ipk raven_alpha.ipk
 cp -r raven_${VERSION}_all.ipk raven-alpha.ipk
 cp -f raven-${VERSION}.apk raven-alpha.apk
 
