@@ -46,7 +46,7 @@ function createNodeinfoMessage(to, namekey, extra)
         role: me.role,
         public_key: me.public_key,
         is_unmessagable: !textmessage.isMessagable(),
-        firmware_version: version.version
+        version: version.version
     }, extra);
 }
 
