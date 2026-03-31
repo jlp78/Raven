@@ -5,6 +5,7 @@ import * as nodedb from "nodedb";
 import * as timers from "timers";
 import * as channel from "channel";
 import * as textmessage from "textmessage";
+import * as version from "version";
 
 const HW_PRIVATE = 255;
 const HW_NATIVE = 254;
@@ -44,7 +45,8 @@ function createNodeinfoMessage(to, namekey, extra)
         platform: "native",
         role: me.role,
         public_key: me.public_key,
-        is_unmessagable: !textmessage.isMessagable()
+        is_unmessagable: !textmessage.isMessagable(),
+        firmware_version: version.version
     }, extra);
 }
 

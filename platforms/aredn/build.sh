@@ -22,6 +22,7 @@ cp $SRC/*.uc $ROOT/data/usr/local/raven/
 cp $SRC/crypto/*.uc $ROOT/data/usr/local/raven/crypto/
 cp $SRC/platforms/aredn/*.uc $ROOT/data/usr/local/raven/platforms/aredn/
 cp $SRC/platforms/aredn/raven.conf $ROOT/data/usr/local/raven/
+echo "export const version = '${VERSION}';" > $ROOT/data/usr/local/raven/version.uc
 
 cp $SRC/ui/ui.js $SRC/ui/ui.css $SRC/ui/raven.svg $ROOT/data/www/apps/raven/
 cat $SRC/ui/index.html | sed s:0.0.0-r0:${VERSION}: > $ROOT/data/www/apps/raven/index.html
