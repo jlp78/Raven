@@ -202,6 +202,7 @@ function htmlNodeDetail(node)
                 <div class="r"><div>Platform</div><div>${node.platform == "native" ? "AREDN" : node.platform == "meshcore" ? "MeshCore" : "Meshtastic"}</div></div>
                 ${node.public_key ? '<div class="r"><div>Public Key</div><div>' + node.public_key + '</div></div>' : ''}
                 ${hops}
+                ${node.version ? '<div class="r"><div>Version</div><div>' + node.version + '</div></div>' : ''}
                 <div class="r"><div>Role</div><div>${node.rolename}</div></div>
                 <div class="t"><div>Last seen</div><div>${new Date(1000 * node.lastseen).toLocaleString()}</div></div>
             </div>

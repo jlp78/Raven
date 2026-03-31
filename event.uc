@@ -96,6 +96,7 @@ function fullNode(node)
             lastseen: node.lastseen,
             platform: nodeinfo.platform,
             is_unmessagable: nodeinfo.is_unmessagable,
+            version: nodeinfo.version,
             state: textmessage.state(nodedb.namekey(node.id))
         };
         switch (nodeinfo.platform ?? 'unknown') {
