@@ -911,7 +911,7 @@ function doneChannels()
 {
     function getKey(key)
     {
-        key = key.replace(/\s/g, "");
+        key = key.replace(/\s/g, "").replace(/l/g, "1").replace(/O/g, "0");
         if (key.length === 32 && key.match(/^[a-fA-F0-9]*$/)) {
             return btoa(key.match(/\w{2}/g).map(a => String.fromCharCode(parseInt(a, 16))).join(""));
         }
