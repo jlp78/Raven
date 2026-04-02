@@ -202,7 +202,7 @@ a
 #channels-container
 {
     position: relative;
-    min-height: 200px;
+    min-height: 160px;
     margin: 10px 10px 10px 0;
     padding-top: 30px;
     background-color: var(--container-bg-color);
