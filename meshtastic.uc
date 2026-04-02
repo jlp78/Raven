@@ -22,6 +22,7 @@ let s = null;
 const portnum2Proto = {};
 const proto2Portnum = {};
 const protos = {};
+let callsign = null;
 
 export function registerProto(name, portnum, decode)
 {
@@ -112,6 +113,7 @@ function decodePacket(pkt)
     // Set the hop_limit to 1 to prevent this from being routed back out to meshtastic or meshcore
     msg.hop_limit = 1;
     msg.transport = "meshtastic";
+    msg.originating_callsign = callsign;
     if (!msg.encrypted) {
         return decodePacketData(msg);
     }
@@ -202,6 +204,8 @@ export function setup(config)
     if (!config.meshtastic) {
         return;
     }
+    callsign = config.callsign;
+
     const address = config.meshtastic.address;
     s = socket.create(socket.AF_INET, socket.SOCK_DGRAM, 0);
     s.setopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1);

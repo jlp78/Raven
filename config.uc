@@ -11,6 +11,7 @@ import * as event from "event";
 
 import * as nodedb from "nodedb";
 import * as nodeinfo from "nodeinfo";
+import * as message from "message";
 import * as textmessage from "textmessage";
 import * as position from "position";
 import * as traceroute from "traceroute";
@@ -170,6 +171,8 @@ export function setup()
 
     nodeinfo.setup(config);
     router.registerApp(nodeinfo);
+    message.setup(config);
+    router.registerApp(message);
     textmessage.setup(config);
     router.registerApp(textmessage);
     position.setup(config);

@@ -79,6 +79,7 @@ let prefixHash1 = null;
 let prefixHash2 = null;
 let twoPrefix1 = null;
 let twoPrefix2 = null;
+let callsign = null;
 
 let sharedKeys = {};
 let xPriv = {};
@@ -180,6 +181,7 @@ export function setup(config)
         prefixHash2 = node.getMeshcoreHash(2);
         twoPrefix2 = struct.pack(">2H", config.meshcore.bridgehash, prefixHash2);
     }
+    callsign = config.callsign;
 
     const address = config.meshcore.address;
     s = socket.create(socket.AF_INET, socket.SOCK_DGRAM, 0);
@@ -260,7 +262,8 @@ function decodePacket(pkt)
         // Set the hop_limit to 1 to prevent this from being routed back out to meshcore or meshtastic
         hop_limit: 1,
         data: {},
-        transport: "meshcore"
+        transport: "meshcore",
+        originating_callsign: callsign
     };
     const header = ord(pkt, offset);
     offset++;

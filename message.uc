@@ -5,6 +5,8 @@ import * as channel from "channel";
 const DEFAULT_PRIORITY = 64;
 const ACK_PRIORITY = 120;
 
+let callsign = null;
+
 export function createMessage(to, from, namekey, type, payload, extra)
 {
     const hops = node.hopLimit();
@@ -17,6 +19,7 @@ export function createMessage(to, from, namekey, type, payload, extra)
         priority: DEFAULT_PRIORITY,
         hop_limit: hops,
         transport: "native",
+        originating_callsign: callsign,
         data: {
             [type]: payload
         }
@@ -44,4 +47,17 @@ export function createAckMessage(msg, reason)
             request_id: msg.id
         }
     });
+};
+
+export function setup(config)
+{
+    callsign = config.callsign;
+};
+
+export function tick()
+{
+};
+
+export function process()
+{
 };
