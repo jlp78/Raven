@@ -22,7 +22,9 @@ let s = null;
 const portnum2Proto = {};
 const proto2Portnum = {};
 const protos = {};
+let router;
 let callsign = null;
+let dirty = false;
 
 export function registerProto(name, portnum, decode)
 {
@@ -42,6 +44,7 @@ function getSharedKey(priv, pub)
     if (!sharedkey) {
         sharedkey = crypto.getSharedKey(priv, pub);
         sharedKeys[hkey] = sharedkey;
+        dirty = true;
     }
     return sharedkey;
 }
@@ -56,9 +59,12 @@ function loadSharedKeys()
 
 function saveSharedKeys()
 {
-    platform.store("meshtastic.sharedkeys", {
-        sharedKeys: sharedKeys
-    });
+    if (dirty) {
+        platform.store("meshtastic.sharedkeys", {
+            sharedKeys: sharedKeys
+        });
+        dirty = false;
+    }
 }
 
 function sendDirect(msg)
@@ -205,6 +211,7 @@ export function setup(config)
         return;
     }
     callsign = config.callsign;
+    router = config.router;
 
     const address = config.meshtastic.address;
     s = socket.create(socket.AF_INET, socket.SOCK_DGRAM, 0);
@@ -251,24 +258,68 @@ function makeNativeMsg(data)
 
 function makeMeshtasticMsg(msg)
 {
-    const nmsg = merge({
-        rx_snr: 0,
-        rx_rssi: 0,
-        relay_node: msg.from & 255,
-        transport_mechanism: TRANSPORT_MECHANISM_MULTICAST_UDP,
-        hop_start: msg.hop_limit,
-        data: merge({
-            bitfield: BITFIELD_MQTT_OKAY
-        }, msg.data)
-    }, msg);
+    let mchannel = null;
     if (node.isBroadcast(msg)) {
         const chan = channel.getChannelByNameKey(msg.namekey);
         if (!chan) {
             return null;
         }
-        nmsg.channel = chan.meshtastichash;
+        mchannel = chan.meshtastichash;
     }
-    return encodePacket(nmsg);
+    if (msg.data.text_message && length(msg.data.text_message) > MAX_TEXT_MESSAGE_LENGTH) {
+        const pkts = [];
+        const words = split(msg.data.text_message, " ");
+        let line = "";
+        for (let i = 0; i < length(words); i++) {
+            if (length(line) + length(words[i]) < MAX_TEXT_MESSAGE_LENGTH) {
+                line += " " + words[i];
+            }
+            else {
+                push(pkts, encodePacket(merge({
+                    rx_snr: 0,
+                    rx_rssi: 0,
+                    relay_node: msg.from & 255,
+                    transport_mechanism: TRANSPORT_MECHANISM_MULTICAST_UDP,
+                    hop_start: msg.hop_limit,
+                    channel: mchannel,
+                    data:{
+                        bitfield: BITFIELD_MQTT_OKAY,
+                        text_message: trim(line)
+                    }
+                }, msg)));
+                router.queueId(msg.id);
+                msg.id++;
+                line = words[i];
+            }
+        }
+        if (length(line) > 0) {
+            push(pkts, encodePacket(merge({
+                rx_snr: 0,
+                rx_rssi: 0,
+                relay_node: msg.from & 255,
+                transport_mechanism: TRANSPORT_MECHANISM_MULTICAST_UDP,
+                hop_start: msg.hop_limit,
+                channel: mchannel,
+                data:{
+                    bitfield: BITFIELD_MQTT_OKAY,
+                    text_message: trim(line)
+                }
+            }, msg)));
+            router.queueId(msg.id);
+        }
+        return pkts;
+    }
+    return [ encodePacket(merge({
+        rx_snr: 0,
+        rx_rssi: 0,
+        relay_node: msg.from & 255,
+        transport_mechanism: TRANSPORT_MECHANISM_MULTICAST_UDP,
+        hop_start: msg.hop_limit,
+        channel: mchannel,
+        data: merge({
+            bitfield: BITFIELD_MQTT_OKAY
+        }, msg.data)
+    }, msg)) ];
 }
 
 export function recv()
@@ -279,14 +330,16 @@ export function recv()
 export function send(msg)
 {
     if (s !== null) {
-        const pkt = makeMeshtasticMsg(msg);
-        if (pkt) {
-            const r = s.send(pkt, 0, {
-                address: ADDRESS,
-                port: PORT
-            });
-            if (r == null) {
-                DEBUG0("meshtastic:send error: %s\n", socket.error());
+        const pkts = makeMeshtasticMsg(msg);
+        if (pkts && pkts[0]) {
+            for (let i = 0; i < length(pkts); i++) {
+                const r = s.send(pkts[i], 0, {
+                    address: ADDRESS,
+                    port: PORT
+                });
+                if (r == null) {
+                    DEBUG0("meshtastic:send error: %s\n", socket.error());
+                }
             }
         }
     }

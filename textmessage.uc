@@ -9,7 +9,7 @@ import * as utils from "utils";
 let enabled = false;
 
 const MAX_MESSAGES = 100;
-const SAVE_INTERVAL = 5 * 60;
+const SAVE_INTERVAL = 19 * 60;
 
 const channelmessages = {};
 const channelmessagesdirty = {};

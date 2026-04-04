@@ -118,19 +118,26 @@ export function process()
     }
 };
 
+export function queueId(id)
+{
+    // Remember messages we queued for a little while and don't queue them again.
+    if (index(recent, id) === -1) {
+        push(recent, id);
+        if (length(recent) > MAX_RECENT) {
+            shift(recent);
+        }
+        return true;
+    }
+    return false;
+};
+
 export function queue(msg)
 {
-    if (msg) {
-        // Remember messages we queued for a little while and don't queue them again.
-        if (index(recent, msg.id) === -1) {
-            push(recent, msg.id);
-            if (length(recent) > MAX_RECENT) {
-                shift(recent);
-            }
-            push(q, msg);
-        }
+    if (msg && queueId(msg.id)) {
+        push(q, msg);
     }
 };
+
 
 export function tick()
 {

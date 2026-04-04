@@ -121,6 +121,7 @@ export function setup()
     }
 
     config.update = update;
+    config.router = router;
 
     global.DEBUG0 = function(){};
     global.DEBUG1 = function(){};

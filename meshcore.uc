@@ -86,6 +86,7 @@ let xPriv = {};
 let xPub = {};
 const recentKeys = {};
 const pendingAcks = {};
+let dirty = false;
 
 function getSharedKey(priv, pub)
 {
@@ -104,6 +105,7 @@ function getSharedKey(priv, pub)
         }
         sharedkey = struct.unpack("32B", crypto.getSharedKey(xpriv, xpub));
         sharedKeys[hkey] = sharedkey;
+        dirty = true;
     }
     return sharedkey;
 }
@@ -120,11 +122,14 @@ function loadSharedKeys()
 
 function saveSharedKeys()
 {
-    platform.store("meshcore.sharedkeys", {
-        sharedKeys: sharedKeys,
-        xPriv: xPriv,
-        xPub: xPub
-    });
+    if (dirty) {
+        platform.store("meshcore.sharedkeys", {
+            sharedKeys: sharedKeys,
+            xPriv: xPriv,
+            xPub: xPub
+        });
+        dirty = false;
+    }
 }
 
 function getRecentKeys(fromhash, tohash)
@@ -632,6 +637,12 @@ function pad(buf)
     return buf;
 }
 
+function wrap(pkt)
+{
+    const len = length(pkt);
+    return struct.pack(">HH", 0xC03E, len) + pkt + struct.pack(">H", fletch16(pkt, 0, len));
+}
+
 function makeMeshcoreMsg(msg)
 {
     let pkt = null;
@@ -670,9 +681,9 @@ function makeMeshcoreMsg(msg)
         const fromprivate = node.fromMe(msg) ? node.getInfo().private_key : platform.getTargetById(msg.from)?.private_key;
         const signature = crypto.sign(fromprivate, advert.public_key, plain);
 
-        pkt = makePktHeader(PAYLOAD_TYPE_ADVERT, null) + advert.public_key + struct.pack("<I", msg.rx_time) + signature + appdata;
+        return [ wrap(makePktHeader(PAYLOAD_TYPE_ADVERT, null) + advert.public_key + struct.pack("<I", msg.rx_time) + signature + appdata) ];
     }
-    else if (msg.data?.text_message) {
+    if (msg.data?.text_message) {
         if (sendDirect(msg)) {
             const keys = getDirectSendKey(msg);
             if (keys) {
@@ -682,7 +693,7 @@ function makeMeshcoreMsg(msg)
                 const encrypted = crypto.encryptECB(keys.sharedkey, pad(plain));
                 const hmac = crypto.sha256hmac(keys.sharedkey, encrypted);
 
-                pkt = makePktHeader(PAYLOAD_TYPE_TXT_MSG, msg.path) + struct.pack("4B", keys.tohash, keys.fromhash, hmac[0], hmac[1]) + encrypted;
+                return [ wrap(makePktHeader(PAYLOAD_TYPE_TXT_MSG, msg.path) + struct.pack("4B", keys.tohash, keys.fromhash, hmac[0], hmac[1]) + encrypted) ];
             }
         }
         else {
@@ -697,15 +708,47 @@ function makeMeshcoreMsg(msg)
                         text = `@[${reply}]${text}`;
                     }
                 }
-                const plain = pad(struct.pack("<IB", msg.rx_time, 0) + substr(text, 0, MAX_TEXT_MESSAGE_LENGTH));
-                const encrypted = crypto.encryptECB(chan.symmetrickey, plain);
-                const hmac = crypto.sha256hmac(chan.symmetrickey, encrypted);
+                if (length(text) > MAX_TEXT_MESSAGE_LENGTH) {
+                    const pkts = [];
+                    const words = split(msg.data.text_message, " ");
+                    let line = `${name}:`;
+                    if (msg.data.reply_id) {
+                        const reply = nodedb.getNode(msg.data.reply_id, false)?.nodeinfo?.long_name;
+                        if (reply) {
+                            line = `@[${reply}]${line}`;
+                        }
+                    }
+                    for (let i = 0; i < length(words); i++) {
+                        if (length(line) + length(words[i]) < MAX_TEXT_MESSAGE_LENGTH) {
+                            line += " " + words[i];
+                        }
+                        else {
+                            const plain = pad(struct.pack("<IB", msg.rx_time, 0) + trim(line));
+                            const encrypted = crypto.encryptECB(chan.symmetrickey, plain);
+                            const hmac = crypto.sha256hmac(chan.symmetrickey, encrypted);
+                            push(pkts, wrap(makePktHeader(PAYLOAD_TYPE_GRP_TXT, null) + struct.pack("3B", chan.meshcorehash, hmac[0], hmac[1]) + encrypted));
+                            line = `${name}: ${words[i]}`;
+                        }
+                    }
+                    if (length(line) > 0) {
+                        const plain = pad(struct.pack("<IB", msg.rx_time, 0) + trim(line));
+                        const encrypted = crypto.encryptECB(chan.symmetrickey, plain);
+                        const hmac = crypto.sha256hmac(chan.symmetrickey, encrypted);
+                        push(pkts, wrap(makePktHeader(PAYLOAD_TYPE_GRP_TXT, null) + struct.pack("3B", chan.meshcorehash, hmac[0], hmac[1]) + encrypted));
+                    }
+                    return pkts;
+                }
+                else {
+                    const plain = pad(struct.pack("<IB", msg.rx_time, 0) + text);
+                    const encrypted = crypto.encryptECB(chan.symmetrickey, plain);
+                    const hmac = crypto.sha256hmac(chan.symmetrickey, encrypted);
 
-                pkt = makePktHeader(PAYLOAD_TYPE_GRP_TXT, null) + struct.pack("3B", chan.meshcorehash, hmac[0], hmac[1]) + encrypted;
+                    return [ wrap(makePktHeader(PAYLOAD_TYPE_GRP_TXT, null) + struct.pack("3B", chan.meshcorehash, hmac[0], hmac[1]) + encrypted) ];
+                }
             }
         }
     }
-    else if (msg.data?.routing) {
+    if (msg.data?.routing) {
         if (msg.data.routing.error_reason === 0 && msg.data.routing.checksum) {
             if (msg.path) {
                 const keys = getDirectSendKey(msg);
@@ -721,21 +764,14 @@ function makeMeshcoreMsg(msg)
                     const encrypted = crypto.encryptECB(keys.sharedkey, pad(plain));
                     const hmac = crypto.sha256hmac(keys.sharedkey, encrypted);
 
-                    pkt = makePktHeader(PAYLOAD_TYPE_PATH, msg.path) + struct.pack("4B", keys.tohash, keys.fromhash, hmac[0], hmac[1]) + encrypted;
+                    return wrap(makePktHeader(PAYLOAD_TYPE_PATH, msg.path) + struct.pack("4B", keys.tohash, keys.fromhash, hmac[0], hmac[1]) + encrypted);
                 }
             }
-            if (!pkt) {
-                pkt = makePktHeader(PAYLOAD_TYPE_ACK, null) + struct.pack("4B", ...msg.data.routing.checksum);
-            }
+            return [ wrap(makePktHeader(PAYLOAD_TYPE_ACK, null) + struct.pack("4B", ...msg.data.routing.checksum)) ];
         }
     }
 
-    if (!pkt) {
-        return null;
-    }
-
-    const len = length(pkt);
-    return struct.pack(">HH", 0xC03E, len) + pkt + struct.pack(">H", fletch16(pkt, 0, len));
+    return null;
 }
 
 export function recv()
@@ -746,14 +782,16 @@ export function recv()
 export function send(msg)
 {
     if (s !== null) {
-        const pkt = makeMeshcoreMsg(msg);
-        if (pkt) {
-            const r = s.send(pkt, 0, {
-                address: ADDRESS,
-                port: PORT
-            });
-            if (r == null) {
-                DEBUG0("meshcore:send error: %s\n", socket.error());
+        const pkts = makeMeshcoreMsg(msg);
+        if (pkts) {
+            for (let i = 0; i < length(pkts); i++) {
+                const r = s.send(pkts[i], 0, {
+                    address: ADDRESS,
+                    port: PORT
+                });
+                if (r == null) {
+                    DEBUG0("meshcore:send error: %s\n", socket.error());
+                }
             }
         }
     }

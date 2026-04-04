@@ -3,7 +3,7 @@ import * as timers from "timers";
 import * as node from "node";
 import * as utils from "utils";
 
-const SAVE_INTERVAL = 17 * 60; // 17 minutes
+const SAVE_INTERVAL = 31 * 60; // 31 minutes
 const KEEP_WINDOW = 7 * 24 * 60 * 60; // 7 days
 
 let nodedb;
