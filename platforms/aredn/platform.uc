@@ -36,6 +36,7 @@ let watcher = null;
 let maxBinarySize = 1 * 1024 * 1024;
 let inShutdown = false;
 let storeSort = 0;
+let ramMessages = false;
 
 /* export */ function setup(config)
 {
@@ -47,9 +48,17 @@ let storeSort = 0;
         }
         fs.mkdir(p);
     }
+
+    if (config.messages?.ram) {
+        ramMessages = true;
+    }
+
     mkdirp("/usr/local/raven/data");
     mkdirp("/usr/local/raven/winlink/forms");
     mkdirp("/tmp/apps/raven/images");
+    if (ramMessages) {
+        mkdirp("/tmp/apps/raven/data");
+    }
 
     const c = uci.cursor();
     ucdata.latitude = c.get("aredn", "@location[0]", "lat");
@@ -190,6 +199,9 @@ function path(name)
     }
     if (index(name, "winlink/") === 0) {
         return `/usr/local/raven/${name}`;
+    }
+    if (ramMessages && index(name, "messages.") === 0) {
+        return `/tmp/apps/raven/data/${replace(name, /\//g, "_")}.json`;
     }
     return `/usr/local/raven/data/${replace(name, /\//g, "_")}.json`;
 }
