@@ -224,15 +224,7 @@ function htmlText(text, useimage)
 {
     let n = nodes[text.from];
     if (!n) {
-        if (text.from) {
-            const id = text.from.toString(16);
-            n = {
-                short_name: id.substr(-4),
-                long_name: id.substr(-4),
-                colors: nodeColors(text.from)
-            };
-        }
-        else {
+        if (text.textfrom) {
             const hash = sha256(text.textfrom.replace(/[^\x00-\x7F]/g, ""));
             const from = (hash[0] << 24) + (hash[1] << 16) + (hash[2] << 8) + hash[3];
             const short_name = makeShortName(text.textfrom);
@@ -241,6 +233,14 @@ function htmlText(text, useimage)
                 long_name: text.textfrom,
                 colors: nodeColors(from),
                 platform: "meshcore"
+            };
+        }
+        else {
+            const id = text.from.toString(16);
+            n = {
+                short_name: id.substr(-4),
+                long_name: id.substr(-4),
+                colors: nodeColors(text.from)
             };
         }
     }
