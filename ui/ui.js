@@ -418,7 +418,9 @@ function updateNode(msg)
         if (n) {
             const r = n.getBoundingClientRect();
             if (r.bottom >= c.top && r.top < c.bottom) {
-                nl.replaceChild(nd, n);
+                if (n.getAnimations().length === 0) {
+                    nl.replaceChild(nd, n);
+                }
             }
             else {
                 nl.removeChild(n);
