@@ -80,6 +80,7 @@ let prefixHash2 = null;
 let twoPrefix1 = null;
 let twoPrefix2 = null;
 let callsign = null;
+let router = null;
 
 let sharedKeys = {};
 let xPriv = {};
@@ -187,6 +188,7 @@ export function setup(config)
         twoPrefix2 = struct.pack(">2H", config.meshcore.bridgehash, prefixHash2);
     }
     callsign = config.callsign;
+    router = config.router;
 
     const address = config.meshcore.address;
     s = socket.create(socket.AF_INET, socket.SOCK_DGRAM, 0);
@@ -737,7 +739,12 @@ function makeMeshcoreMsg(msg)
                         const plain = pad(struct.pack("<IB", msg.rx_time, 0) + line);
                         const encrypted = crypto.encryptECB(chan.symmetrickey, plain);
                         const hmac = crypto.sha256hmac(chan.symmetrickey, encrypted);
-                        push(pkts, wrap(makePktHeader(PAYLOAD_TYPE_GRP_TXT, null) + struct.pack("3B", chan.meshcorehash, hmac[0], hmac[1]) + encrypted));
+                        const body = struct.pack("3B", chan.meshcorehash, hmac[0], hmac[1]) + encrypted;
+                        push(pkts, wrap(makePktHeader(PAYLOAD_TYPE_GRP_TXT, null) + body));
+
+                        const pkthash = crypto.sha256hash(chr(PAYLOAD_TYPE_GRP_TXT) + body);
+                        const id = (pkthash[0] << 24) | (pkthash[1] << 16) + (pkthash[2] << 8) + pkthash[3];
+                        router.queueId(id);
                     }
                     return pkts;
                 }
