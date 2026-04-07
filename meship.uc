@@ -54,12 +54,6 @@ export function recv()
 
 export function send(to, msg, canforward)
 {
-    // MeshIP bridge traffic should never be forwarded by a receiver
-    // and is only ever for the direct recipient.
-    if (bridge) {
-        msg.hop_limit = 0;
-        canforward = false;
-    }
     const targets = platform.getTargetsByIdAndNamekey(to, msg.namekey, canforward);
     const data = sprintf("%J", msg);
     const from = msg.from;

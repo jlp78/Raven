@@ -56,40 +56,41 @@ export function process()
             // If we know where the msg goes, it goes vi IP
             if (platform.getTargetById(msg.to)) {
                 toip = true;
+                msg.hop_limit = 0;
             }
             // Otherwise if it's from me or originated natively, then it goes everywhere. If we know the
             // target network we can avoiding retransmitting it unnecessarily.
             else if (msg.transport === "native") {
                 const tonodeinfo = node.isBroadcast(msg) ? null : nodedb.getNode(msg.to, false)?.nodeinfo;
-                if (node.fromMe(msg) || tonodeinfo?.platform === "native" || meship.isBridge()) {
+                // MeshIP bridge traffic should never be forwarded by a receiver and is only ever for the direct recipient.
+                if (meship.isBridge()) {
+                    // We don't forward meshtasticore preset traffic across an IP bridge, we keep it local.
+                    if (!channel.isMeshcorePreset(msg.namekey) && !channel.isMeshtasticPreset(msg.namekey)) {
+                        toip = true;
+                        msg.hop_limit = 0;
+                    }
+                }
+                else if (node.fromMe(msg) || tonodeinfo?.platform === "native") {
                     toip = true;
                 }
-                if (meshtastic.enabled || meshcore.enabled) {
-                    // Forward traffic onto Meshtasticore
-                    if (msg.namekey !== "AREDN og==") {
-                        if (meshtastic.enabled) {
-                            // Dont forward the MeshCore primary channel to Meshtastic
-                            if (msg.namekey !== "MeshCore izOH6cXN6mrJ5e26oRXNcg==") {
-                                if (!tonodeinfo || tonodeinfo.platform === "meshtastic") {
-                                    tomeshtastic = true;
-                                }
-                            }
-                        }
-                        if (meshcore.enabled) {
-                            // Dont forward any Meshtastic presets to MeshCore
-                            if (!channel.isMeshtasticPreset(msg.namekey)) {
-                                if (!tonodeinfo || tonodeinfo.platform === "meshcore") {
-                                    tomeshcore = true;
-                                }
-                            }
-                        }
+                // Forward traffic to meshtastic if it's not a preset channel for another mesh
+                if (meshtastic.enabled && !channel.isAREDNPreset(msg.namekey) && !channel.isMeshcorePreset(msg.namekey)) {
+                    if (!tonodeinfo || tonodeinfo.platform === "meshtastic") {
+                        tomeshtastic = true;
+                    }
+                }
+                // Forward traffic to meshcore if it's not a preset channel for another mesh
+                if (meshcore.enabled && !channel.isAREDNPreset(msg.namekey) && !channel.isMeshtasticPreset(msg.namekey)) {
+                    if (!tonodeinfo || tonodeinfo.platform === "meshcore") {
+                        tomeshcore = true;
                     }
                 }
             }
-            // Incoming bridge traffic can only route via IP
+            // Incoming meshtasticore bridged traffic can only route via IP
             // Note that we dont sent traffic from one bridge to another (no meshtastic <-> meshcore bridging) at the moment.
             else {
                 toip = true;
+                msg.hop_limit = 0;
             }
 
             if (toip) {

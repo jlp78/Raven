@@ -14,6 +14,7 @@ const meshtasticChannelPresets = [
     "LongTurbo"
 ];
 const meshcorePublicChannel = "izOH6cXN6mrJ5e26oRXNcg==";
+const meshcorePublicNamekey = `MeshCore ${meshcorePublicChannel}`;
 
 global.channelByNameKey = {};
 global.channelsByMeshtasticHash = {};
@@ -119,6 +120,11 @@ export function getChannelByNameKey(namekey)
     return channelByNameKey[namekey];
 };
 
+export function isAREDNPreset(namekey)
+{
+    return namekey === "AREDN og==";
+};
+
 export function isMeshtasticPreset(namekey)
 {
     if (!namekey) {
@@ -126,6 +132,11 @@ export function isMeshtasticPreset(namekey)
     }
     const nk = split(namekey, " ");
     return nk[1] === "AQ==" && index(meshtasticChannelPresets, nk[0]) !== -1;
+};
+
+export function isMeshcorePreset(namekey)
+{
+    return namekey === meshcorePublicNamekey;
 };
 
 export function getAllLocalChannels()
