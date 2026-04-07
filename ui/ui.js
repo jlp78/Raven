@@ -451,7 +451,7 @@ function updateTitle()
     for (let i in directs) {
         count += directs[i].state.count;
     }
-    document.title = `Raven Mesh Messaging${count > 0 ? " (" + count + " unread)" : ""}`;
+    document.title = count > 0 ? `Reven (${count} unread)` : `Raven Mesh Messaging`;
 }
 
 function updateChannels(msg)
