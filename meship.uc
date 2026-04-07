@@ -39,9 +39,10 @@ export function recv()
     try {
         const m = s.recvmsg(65535);
         const msg = json(m.data);
+        msg.ipaddress = m.address.address;
         // Avoid messages from remote networks if we don't have our own ip forwarder available.
         // This avoid async messages where we receive from remote networks but cannot reply.
-        if (!bridge && msg.transport === "native" && !platform.canAcceptIPAddress(m.address.address)) {
+        if (!bridge && msg.transport === "native" && !platform.canAcceptIPAddress(msg.ipaddress, true)) {
             return null;
         }
         return msg;

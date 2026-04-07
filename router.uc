@@ -64,17 +64,26 @@ export function process()
                 if (node.fromMe(msg) || tonodeinfo?.platform === "native" || meship.isBridge()) {
                     toip = true;
                 }
-                if (msg.namekey !== "AREDN og==") {
-                    // Dont forward the MeshCore primary channel to Meshtastic
-                    if (msg.namekey !== "MeshCore izOH6cXN6mrJ5e26oRXNcg==") {
-                        if (!tonodeinfo || tonodeinfo.platform === "meshtastic") {
-                            tomeshtastic = true;
+                if (meshtastic.enabled || meshcore.enabled) {
+                    // Forward traffic onto Meshtastic code if its:
+                    // 1. Not on the primary AREDN channel.
+                    // 2. Not from a node outside our local network.
+                    if (msg.namekey !== "AREDN og==" && platform.canAcceptIPAddress(msg.ipaddress, false)) {
+                        if (meshtastic.enabled) {
+                            // Dont forward the MeshCore primary channel to Meshtastic
+                            if (msg.namekey !== "MeshCore izOH6cXN6mrJ5e26oRXNcg==") {
+                                if (!tonodeinfo || tonodeinfo.platform === "meshtastic") {
+                                    tomeshtastic = true;
+                                }
+                            }
                         }
-                    }
-                    // Dont forward any Meshtastic presets to MeshCore
-                    if (!channel.isMeshtasticPreset(msg.namekey)) {
-                        if (!tonodeinfo || tonodeinfo.platform === "meshcore") {
-                            tomeshcore = true;
+                        if (meshcore.enabled) {
+                            // Dont forward any Meshtastic presets to MeshCore
+                            if (!channel.isMeshtasticPreset(msg.namekey)) {
+                                if (!tonodeinfo || tonodeinfo.platform === "meshcore") {
+                                    tomeshcore = true;
+                                }
+                            }
                         }
                     }
                 }

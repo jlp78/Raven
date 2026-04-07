@@ -25,6 +25,7 @@ const protos = {};
 let router;
 let callsign = null;
 let dirty = false;
+export let enabled = false;
 
 export function registerProto(name, portnum, decode)
 {
@@ -210,6 +211,8 @@ export function setup(config)
     if (!config.meshtastic) {
         return;
     }
+    enabled = true;
+
     callsign = config.callsign;
     router = config.router;
 

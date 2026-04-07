@@ -88,6 +88,7 @@ let xPub = {};
 const recentKeys = {};
 const pendingAcks = {};
 let dirty = false;
+export let enabled = false;
 
 function getSharedKey(priv, pub)
 {
@@ -181,6 +182,8 @@ export function setup(config)
         print("Missing bridge hash - disabling MeshCore\n");
         return;
     }
+    enabled = true;
+
     prefixHash1 = node.getMeshcoreHash(1);
     twoPrefix1 = struct.pack("BB", config.meshcore.bridgehash, prefixHash1);
     if (config.meshcore.bridgehash > 255) {
