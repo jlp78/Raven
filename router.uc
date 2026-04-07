@@ -65,10 +65,8 @@ export function process()
                     toip = true;
                 }
                 if (meshtastic.enabled || meshcore.enabled) {
-                    // Forward traffic onto Meshtastic code if its:
-                    // 1. Not on the primary AREDN channel.
-                    // 2. Not from a node outside our local network.
-                    if (msg.namekey !== "AREDN og==" && platform.canAcceptIPAddress(msg.ipaddress, false)) {
+                    // Forward traffic onto Meshtasticore
+                    if (msg.namekey !== "AREDN og==") {
                         if (meshtastic.enabled) {
                             // Dont forward the MeshCore primary channel to Meshtastic
                             if (msg.namekey !== "MeshCore izOH6cXN6mrJ5e26oRXNcg==") {

@@ -558,9 +558,9 @@ function refreshTargets()
     return ucdata.mapUrl ? replace(replace(ucdata.mapUrl, "(lat)", lat), "(lon)", lon) : null;
 }
 
-/* export */ function canAcceptIPAddress(address, canforward)
+/* export */ function canAcceptIPAddress(address)
 {
-    return (canforward && hasMeshIpForwarder) || !address || system(`/sbin/ip route show table 20 | grep -q ${address}`) === 0;
+    return hasMeshIpForwarder || system(`/sbin/ip route show table 20 | grep -q ${address}`) === 0;
 }
 
 return {

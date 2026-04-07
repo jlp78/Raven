@@ -42,7 +42,7 @@ export function recv()
         msg.ipaddress = m.address.address;
         // Avoid messages from remote networks if we don't have our own ip forwarder available.
         // This avoid async messages where we receive from remote networks but cannot reply.
-        if (!bridge && msg.transport === "native" && !platform.canAcceptIPAddress(msg.ipaddress, true)) {
+        if (!bridge && msg.transport === "native" && !platform.canAcceptIPAddress(msg.ipaddress)) {
             return null;
         }
         return msg;
