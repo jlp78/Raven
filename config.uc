@@ -49,9 +49,6 @@ function update(option)
                 if (channels[i].telemetry) {
                     nchannel.telemetry = true;
                 }
-                if (channels[i].meshtastic) {
-                    nchannel.meshtastic = true;
-                }
                 push(nchannels, nchannel);
             }
             if (!jsonEq(nchannels, config.channels)) {

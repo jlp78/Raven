@@ -2,19 +2,18 @@ import * as struct from "struct";
 import * as crypto from "crypto.crypto";
 
 const meshtasticChannelPresets = [
-    "Disabled",
-    "ShortTurbo",
-    "ShortSlow",
-    "ShortFast",
-    "MediumSlow",
-    "MediumFast",
-    "LongSlow",
-    "LongFast",
-    "LongMod",
-    "LongTurbo"
+    "ShortTurbo AQ==",
+    "ShortSlow AQ==",
+    "ShortFast AQ==",
+    "MediumSlow AQ==",
+    "MediumFast AQ==",
+    "LongSlow AQ==",
+    "LongFast AQ==",
+    "LongMod AQ==",
+    "LongTurbo AQ=="
 ];
-const meshcorePublicChannel = "izOH6cXN6mrJ5e26oRXNcg==";
-const meshcorePublicNamekey = `MeshCore ${meshcorePublicChannel}`;
+const meshcorePublicNamekey = "MeshCore izOH6cXN6mrJ5e26oRXNcg==";
+const arednPublicChannel = "AREDN og==";
 
 global.channelByNameKey = {};
 global.channelsByMeshtasticHash = {};
@@ -54,6 +53,21 @@ function getMeshcoreHash(key)
     return crypto.sha256hash(struct.pack(`${length(key)}B`, ...key))[0];
 }
 
+export function isAREDNPreset(namekey)
+{
+    return namekey === arednPublicChannel;
+};
+
+export function isMeshtasticPreset(namekey)
+{
+    return !namekey || index(meshtasticChannelPresets, namekey) !== -1;
+};
+
+export function isMeshcorePreset(namekey)
+{
+    return namekey === meshcorePublicNamekey;
+};
+
 export function addMessageNameKey(namekey)
 {
     if (channelByNameKey[namekey]) {
@@ -72,17 +86,12 @@ export function addMessageNameKey(namekey)
 
 function setLocalChannel(config)
 {
-    const name = split(config.namekey, " ")[0];
     const chan = addMessageNameKey(config.namekey);
-    if (chan.symmetrickey[-1] === 1 && index(meshtasticChannelPresets, name) !== -1) {
-        chan.meshtastic = true;
+    if (isMeshtasticPreset(config.namekey)) {
         chan.telemetry = true;
         meshtasticChannel = chan;
     }
-    if (split(config.namekey, " ")[1] === meshcorePublicChannel) {
-        chan.meshcore = true;
-    }
-    if (config.namekey === "AREDN og==") {
+    if (isAREDNPreset(config.namekey)) {
         chan.telemetry = true;
     }
     if (config.telemetry !== null) {
@@ -118,25 +127,6 @@ export function getChannelByNameKey(namekey)
         return meshtasticChannel;
     }
     return channelByNameKey[namekey];
-};
-
-export function isAREDNPreset(namekey)
-{
-    return namekey === "AREDN og==";
-};
-
-export function isMeshtasticPreset(namekey)
-{
-    if (!namekey) {
-        return true;
-    }
-    const nk = split(namekey, " ");
-    return nk[1] === "AQ==" && index(meshtasticChannelPresets, nk[0]) !== -1;
-};
-
-export function isMeshcorePreset(namekey)
-{
-    return namekey === meshcorePublicNamekey;
 };
 
 export function getAllLocalChannels()

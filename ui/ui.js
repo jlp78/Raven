@@ -451,7 +451,7 @@ function updateTitle()
     for (let i in directs) {
         count += directs[i].state.count;
     }
-    document.title = count > 0 ? `Reven (${count} unread)` : `Raven Mesh Messaging`;
+    document.title = count > 0 ? `Raven (${count} unread)` : `Raven Mesh Messaging`;
 }
 
 function updateChannels(msg)
@@ -1101,14 +1101,12 @@ function showNamekey(namekey)
             echannels = [];
             channels.forEach((c, i) => {
                 const nk = c.namekey.split(" ");
-                const meshcore = nk[1] === "izOH6cXN6mrJ5e26oRXNcg==";
-                const aredn = c.namekey === "AREDN og==";
                 echannels.push({
                     name: nk[0],
                     key: nk[1],
                     meshtastic: c.meshtastic,
-                    meshcore: meshcore,
-                    aredn: aredn,
+                    meshcore: c.meshcore,
+                    aredn: c.aredn,
                     max: c.state.max,
                     badge: c.state.badge,
                     images: useImage(c.namekey),

@@ -403,7 +403,7 @@ function orderStores()
         if (meshtasticEnabled) {
             const mconf = {};
             for (let i = 0; i < length(channels); i++) {
-                if (channels[i].meshtastic) {
+                if (channel.isMeshtasticPreset(channels[i].namekey)) {
                     mconf.preset = split(channels[i].namekey, " ")[0];
                     break;
                 }

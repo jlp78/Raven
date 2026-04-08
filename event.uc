@@ -222,7 +222,7 @@ export function tick()
                 case "channels":
                 {
                     const channels = map(channel.getAllLocalChannels(), c => {
-                        return { namekey: c.namekey, meshtastic: c.meshtastic, winlink: c.winlink, telemetry: c.telemetry, state: textmessage.state(c.namekey) };
+                        return { namekey: c.namekey, meshtastic: channel.isMeshtasticPreset(c.namekey), meshcore: channel.isMeshcorePreset(c.namekey), aredn: channel.isAREDNPreset(c.namekey), winlink: c.winlink, telemetry: c.telemetry, state: textmessage.state(c.namekey) };
                     });
                     send({ event: msg.cmd, channels: channels });
                     break;
